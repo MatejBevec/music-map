@@ -26,6 +26,13 @@ const MAX_ZOOM = 0.2
 var map = null
 var DEBUG_MODE = true
 var USE_IMG = false
+var playingClip = null
+var diagonal = 0
+var fileReader
+
+// Pinch zoom
+var evCache = [];
+var prevDiff = -1;
 
  
 
@@ -52,9 +59,6 @@ function computeTSNE(emb){
     metric: 'euclidean'
   });
 
-  console.log(model)
-  console.log(emb)
-
   model.init({
     data: emb,
     type: 'dense'
@@ -63,11 +67,14 @@ function computeTSNE(emb){
   var [error, iter] = model.run()
   var output = model.getOutputScaled()
 
-  console.log(output)
-
   return output
 
 }
+
+
+
+
+
 
 class DendroNode{
 
@@ -117,16 +124,13 @@ function computeDendrogram(pts){
 
   while (true){
     var entries = Array.from(dgram.values())
-    //console.log(entries)
     var nearest = []
     for (i in entries){
-      console.log(i)
       var dists = entries.map(e => [e, euclDistSquaredArr(e.point, entries[i].point)])
       var sorted = dists.slice().sort((a, b) => a[1] - b[1])
       nearest.push( {a: entries[i], b: sorted[1][0], dist: sorted[1][1]})
     }
     var nearestPair = nearest.slice().sort((a, b) => a.dist - b.dist)[0]
-    //console.log(nearestPair)
     var a = nearestPair.a
     var b = nearestPair.b
     console.log("joining: ", a.toString(), " and ", b.toString())
@@ -157,8 +161,6 @@ async function computeDendrogramLoad(pts, dgramPath){
     dgram.push(cl)
   }
 
-  console.log(linkage.length)
-
   var n = dgram.length
 
   for (var i = 0; i < linkage.length; i++){
@@ -177,22 +179,55 @@ async function computeDendrogramLoad(pts, dgramPath){
 }
 
 
+async function loadImgBatched(imgDir, ids, batchSize){
+  const request = (id) => fetch(`${imgDir}/${id}.jpg`).then(response => response.blob())
+
+  // fetch customers in batches of batchSize, delaying inbetween each batch request
+  const res = await batchRequest(ids, request, { batchSize: batchSize, delay: 200 })
+  const blobs = []
+
+  for (var i = 0; i < res.data.length; i++){
+    blobs.push(res.data[i])
+    //var dataUrl = fileReader.readAsDataURL(res.data[i])
+    //console.log(dataUrl)
+    //console.log('data:image/png;base64,' + res.data[i])
+    //var img = loadImage(dataUrl)
+  }
+  return blobs
+}
+
+
 // CLASSES
 
 class DrawablePoint {
 
-  constructor(idx, id, info, imgPath, img){
+  constructor(idx, id, info, imgPath, clipPath){
     this.idx = idx
     this.id = id
     this.info = info
     this.imgPath = imgPath
-    this.img = img
+    this.img = null
+    this.clipPath = clipPath
+    //this.clip = null
+    this.reader = null
   }
 
-  loadImg(){
+  loadImgBlob(blob){
+    	if (this.reader == null){
+        this.reader = new FileReader()
+        this.reader.onloadend = () => {
+          var dataUrl = this.reader.result
+          this.loadImg(dataUrl)
+        }
+      }
+      this.reader.readAsDataURL(blob)
+  }
+
+  loadImg(imgPath){
     if (!USE_IMG) return
+    if (imgPath == null) imgPath = this.imgPath
     try{
-      loadImage(this.imgPath, img => {
+      loadImage(imgPath, img => {
         this.img = img
       })
     }
@@ -201,6 +236,19 @@ class DrawablePoint {
 
   unloadImg(){
     this.img = null
+  }
+
+  playClip(){
+    if (playingClip && playingClip.isPlaying()){
+      playingClip.stop()
+    }
+    soundFormats('mp3');
+    loadSound(this.clipPath, sound => {
+      if (sound)
+        this.clip = sound
+        playingClip = sound
+        playingClip.play()
+    })
   }
 
   draw(pos, color, circleSize){
@@ -215,6 +263,7 @@ class DrawablePoint {
       [r, g, b] = color
       fill(r, g, b)
       ellipse(pos[0], pos[1], circleSize, circleSize)
+      text(this.idx, pos[0], pos[1])
     }
 
 
@@ -224,11 +273,76 @@ class DrawablePoint {
 
 class Walk {
 
-  constructor(indices){
-
+  constructor(map, indices){
+    this.map = map
+    this.indices = indices
+    this.i = 0
   }
 
+  draw() {
+    strokeWeight(2)
+    var c = this.map.colors[this.indices[0]]
+    stroke(c[0], c[1], c[2])
+    noFill()
+    beginShape()
+    var or = this.map.toScreen(this.map.proj[this.indices[0]])
 
+    var p = this.map.toScreen(this.map.proj[0])
+    curveVertex(p[0], p[1])
+    for(var i of this.indices){
+      var pGlob = this.map.proj[i]
+      p = this.map.toScreen(pGlob)
+      curveVertex(p[0], p[1])
+    }
+    curveVertex(p[0], p[1])
+    endShape()
+  }
+
+  next(){
+    // TODO: play sound, add to playlist?
+    if (this.i >= this.indices.length - 1)
+      this.i = 0
+    else
+      this.i += 1
+    var p = this.map.proj[this.indices[this.i]]
+    this.map.moveWindow(p, null)
+    this.map.drawables[this.indices[this.i]].playClip()
+    return true
+  }
+
+  static random(map, query, n, k){
+    var q = query
+    var walk = [q]
+    for (var i = 0; i < n; i++){
+      var pick = Math.trunc(Math.random() * k) + 1
+      var next = map.findPoint(map.proj[q], pick)
+      walk.push(next)
+      q = next
+    }
+    walk = [...new Set(walk)]
+    console.log("walk", walk)
+    for(var i of walk) console.log(i)
+
+    return new Walk(map, walk)
+  }
+
+  static giro(map, query, controls, dist){
+    var angle = Math.PI
+    var q = query
+    var origin = map.proj[q]
+    var walk = [q]
+    for (var i = 0; i < controls; i++){
+      var ang = angle * i/(controls-1)
+      var x = origin[0] + dist * Math.cos(ang)
+      var y = origin[1] + dist * Math.sin(ang)
+      var next = map.findPoint([x, y], 1)
+      walk.push(next)
+    }
+    walk.push(q)
+    console.log("walk", walk)
+
+    return new Walk(map, walk)
+  }
 
 }
 
@@ -267,8 +381,9 @@ class MusicMap {
     for (i = 0; i < projections.length; i++){
       var id = metadata.ids[i]
       var imgPath = `${DATA_DIR}/resized_images/${id}.jpg` // TEMP!!!
+      var audioPath = `${DATA_DIR}/clips/${id}.mp3` 
       //var img = imgs[i]
-      var drawable = new DrawablePoint(i, id, metadata.info[id], imgPath, null)
+      var drawable = new DrawablePoint(i, id, metadata.info[id], imgPath, audioPath)
       drawables.push(drawable)
     }
 
@@ -312,8 +427,7 @@ class MusicMap {
     map.walk = null
     map.winImgs = []
     map.winSizes = []
-
-    console.log(map.meta)
+    map.imgs = new Array(map.proj.length).fill(null)
 
     map.p0 = 0.5
     map.p1 = 0.5
@@ -369,7 +483,6 @@ class MusicMap {
     
     var kept = Array.from(kept)
     var sizes = kept.map(i => this.dgram[clusters[i]].size)
-    console.log(sizes)
 
     return [kept, sizes]
   }
@@ -379,7 +492,7 @@ class MusicMap {
 
     var oldIdxSet = new Set(this.winIdx)
 
-    console.log(p0, p1)
+    console.log("change window to", p0, p1)
 
     this.p0Lazy = this.p0
     this.p1Lazy = this.p1
@@ -402,12 +515,28 @@ class MusicMap {
 
     var loadIdxSet = [...this.winIdxSet].filter(el => !oldIdxSet.has(el))
     var unloadIdxSet = [...oldIdxSet].filter(el => !this.winIdxSet.has(el))
-    console.log(loadIdxSet)
-    for (var i of loadIdxSet)
-      this.drawables[i].loadImg()
-    for (var i of unloadIdxSet)
-      this.drawables[i].unloadImg()
 
+    console.log("loaded points", loadIdxSet)
+
+    // for (var i of loadIdxSet)
+    //   this.drawables[i].loadImg()
+    // for (var i of unloadIdxSet)
+    //   this.drawables[i].unloadImg()
+
+    // load new images in batches
+    if (USE_IMG){
+      for (var i of unloadIdxSet)
+        this.drawables[i].unloadImg()
+        //this.imgs[i] = null
+      var newIds = loadIdxSet.map((idx) => this.meta.ids[idx])
+      var promise = loadImgBatched(`${DATA_DIR}/resized_images`, newIds, 20)
+      promise.then((blobs) => {
+        for (var i = 0; i < blobs.length; i++){
+          console.log(loadIdxSet[i])
+          this.drawables[loadIdxSet[i]].loadImgBlob(blobs[i])
+        }
+      })
+    }
 
     // var imgs = []
     // for (var i = 0; i < projections.length; i++){
@@ -434,8 +563,6 @@ class MusicMap {
     var ww = (this.p1[0] - this.p0[0])/2
     var wh = (this.p1[1] - this.p0[1])/2
 
-    console.log(midp[0], midp[1], ww, wh)
-
     var p0 = [midp[0] - ww, midp[1] - wh]
     var p1 = [midp[0] + ww, midp[1] + wh]
     this.changeWindow(p0, p1)
@@ -444,9 +571,17 @@ class MusicMap {
   zoomWindow(amount){
     var halfw = (this.p1Lazy[0] - this.p0Lazy[0])/2 * (1+amount)
     var halfh = (this.p1Lazy[1] - this.p0Lazy[1])/2 * (1+amount)
-
-    if (halfw < MIN_ZOOM || halfw > MAX_ZOOM)
-      return
+    var ratio = halfh/halfw
+    
+    // OCCASIONAL BUG HERE!
+    if (halfw < MIN_ZOOM){
+      halfw = MIN_ZOOM
+      halfh = ratio*halfw
+    }
+    else if (halfw > MAX_ZOOM){
+      halfw = MAX_ZOOM
+      halfh = ratio*halfw
+    }
 
     var p0 = [this.midp[0] - halfw, this.midp[1] - halfh]
     var p1 = [this.midp[0] + halfw, this.midp[1] + halfh]
@@ -504,19 +639,6 @@ class MusicMap {
     return [x, y]
   }
 
-  makeWalk(query, n, k){
-    var q = query
-    var walk = [q]
-    for (var i = 0; i < n; i++){
-      var pick = Math.trunc(Math.random() * k) + 1
-      var next = this.findPoint(this.proj[q], pick)
-      walk.push(next)
-      q = next
-    }
-    walk = [...new Set(walk)]
-    return walk
-  }
-
   draw(){
     // Draw points every step
 
@@ -563,19 +685,8 @@ class MusicMap {
     }
 
     // Walk
-    if (this.walk){
-      strokeWeight(2)
-      var c = this.colors[hoverIdx]
-      stroke(c[0], c[1], c[2])
-      noFill()
-      beginShape()
-      for(var i of this.walk){
-        var pGlob = this.proj[i]
-        var p = this.toScreen(pGlob)
-        curveVertex(p[0], p[1])
-      }
-      endShape()
-    }
+    if (this.walk)
+      this.walk.draw()
 
     // Points
     var size = 5
@@ -599,7 +710,6 @@ class MusicMap {
     if (hoverIdx){
       var label = this.getLabel(hoverIdx)
       var hoverP = this.toScreen(this.proj[hoverIdx])
-      //console.log(hoverP, label)
       text(label, hoverP[0]+5, hoverP[1])
     }
   }
@@ -613,6 +723,9 @@ async function preload() {
 
 async function setup() {
   createCanvas(windowWidth, windowHeight)
+  diagonal = Math.sqrt(Math.pow(width, 2), Math.pow(height))
+
+  fileReader = new FileReader()
 
   // pts = [
   //   [1, 3],
@@ -624,6 +737,27 @@ async function setup() {
   //   [-20, 0],
   //   [1, 0]
   // ]
+
+  document.addEventListener("gesturestart", function (e) {
+    e.preventDefault();
+      document.body.style.zoom = 0.99;
+  });
+  document.addEventListener("gesturechange", function (e) {
+    e.preventDefault();
+    document.body.style.zoom = 0.99;
+  });
+  document.addEventListener("gestureend", function (e) {
+      e.preventDefault();
+      document.body.style.zoom = 1;
+  });
+
+  const el = document.getElementById("main");
+  document.onpointerdown = pointerDownHandler;
+  document.onpointermove = pointerMoveHandler;
+  document.onpointerup = pointerUpHandler;
+  document.onpointercancel = pointerUpHandler;
+  document.onpointerout = pointerUpHandler;
+  document.onpointerleave = pointerUpHandler;
 
   var embPath = `${DATA_DIR}/embeddings.json`
   var projPath = `${DATA_DIR}/embeddings_proj.json`
@@ -694,26 +828,97 @@ function keyPressed() {
 
   if (key == "a"){
     var q = map.findPoint(map.midp)
-    var walk = map.makeWalk(q, 25, 4)
-    map.walk = walk
+    map.walk = Walk.giro(map, q, 10, 0.05)
   }
   if (key == "s"){
     var q = map.findPoint(map.midp)
-    var walk = map.makeWalk(q, 20, 12)
-    map.walk = walk
+    map.walk = Walk.giro(map, q, 10, 0.1)
   }
   if (key == "d"){
     map.walk = null
   }
-
+  if(key == "y"){
+    if (map.walk)
+      map.walk.next()
+  }
 }
 
-function mouseWheel(event) {
-  console.log(event.delta)
+var wheelAmount = 0
+var timeoutId = 0
 
-  map.zoomWindow(ZOOM_AMOUNT * event.delta/150)
+function mouseWheel(ev) {
+  wheelAmount += ev.delta/150
+  clearTimeout(timeoutId)
+
+  console.log("scroll")
+
+  timeoutId = setTimeout(() => {
+    map.zoomWindow(ZOOM_AMOUNT * wheelAmount)
+    console.log("timeout", wheelAmount)
+    wheelAmount = 0
+  }, 100)
 }
 
 function keyReleased() {
   // showAllInfo = false
+}
+
+
+function pointerDownHandler(ev) {
+  evCache.push(ev)
+
+  const index = evCache.findIndex((cachedEv) => cachedEv.pointerId === ev.pointerId)
+  evCache[index] = ev
+
+  ev.preventDefault()
+  document.body.style.zoom = 0.99;
+}
+
+function pointerMoveHandler(ev) {
+
+  if (evCache.length === 2) {
+    // Calculate the distance between the two pointers
+    const curDiff = dist(evCache[0].clientX, evCache[0].clientY, evCache[1].clientX, evCache[1].clientY)
+
+    if (prevDiff > 0) {
+      if (curDiff > prevDiff) {
+         // The distance between the two pointers has increased
+         console.log("Pinch moving OUT -> Zoom in", ev)
+
+      }
+      if (curDiff < prevDiff) {
+        // The distance between the two pointers has decreased
+        console.log("Pinch moving IN -> Zoom out",ev)
+
+      }
+      document.body.style.zoom = 0.99;
+    }
+
+    ev.preventDefault()
+
+    // Cache the distance for the next move event
+    prevDiff = curDiff;
+  }
+
+}
+
+function pointerUpHandler(ev){ 
+  removeEvent(ev)
+  document.body.style.zoom = 1;
+  if (evCache.length < 2) {
+    const zoomAmount = prevDiff/diagonal
+    map.zoomWindow(zoomAmount)
+    prevDiff = -1
+  }
+  ev.preventDefault()
+}
+
+function removeEvent(ev) {
+  // Remove this event from the target's cache
+  const index = evCache.findIndex((cachedEv) => cachedEv.pointerId === ev.pointerId)
+  evCache.splice(index, 1)
+}
+
+function doZoom(amount){
+  map.zoomWindow(amount)
 }
