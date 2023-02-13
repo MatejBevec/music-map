@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <title>Viz Test</title>
+  <style>
+    body {
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+      background-color: #1b1b1b;
+    }
+
+    #help {
+      background-color: #FFFFFF;
+      position: absolute;
+      top: -278px;
+      left: -460px;
+      width: 500px;
+      padding: 20px;
+      font-family: sans-serif;
+      cursor: pointer;
+      border: black 1px solid;
+      xbox-shadow: 6px 6px 23px -14px rgba(0,0,0,0.6);
+
+      user-select: none;
+
+      transition-property: top, left; 
+      transition-duration: 0.5s; 
+      transition-timing-function: ease-in-out; 
+    }
+
+    #help-sticker {
+      text-align: right;
+    }
+
+    #help.opened {
+      top: 20px;
+      left: 20px;
+      transition: all 0.5s ease-in-out;
+    }
+
+    #topbar {
+      background-color: white;
+      display: flex;
+      justify-content: space-between;
+    }
+
+
+    #embed-iframe {
+      flex-grow: 3;
+    }
+
+    #controls {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #controls button{
+      font-family: sans-serif;
+      background-color: white;
+      border: 0px;
+      width: 60px;
+      height: 60px;
+      margin-left: 10px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: 2px solid  black;
+      font-weight: bold;
+    }
+
+    #controls button:hover{
+      background-color: #F0F0F0;
+    }
+
+
+  </style>
+  <script src="utils.js"></script>
+  <script src="sketch.js"></script>
+  <script src="musicmap.js"></script>
+
+  <script src="p5.min.js"></script>
+  <script src="addons/p5.sound.js"></script>
+  <script src="kdTree.js"></script>
+  <script src="tsne.min.js"></script>
+  <script src="batch-request.js"></script>
+
+</head>
+
+<body>
+  <main>
+    <div id="topbar">
+      <div id="embed-iframe"></div>
+      <div id="controls">
+        <button id="c-left">&lt;</button>
+        <button id="c-right">&gt;</button>
+        <button id="c-delete">create</button>
+        <button id="c-export">export</button>
+      </div>
+    </div>
+    <div id="canvas">
+    </div>
+  </main>
+  <script src="https://open.spotify.com/embed-podcast/iframe-api/v1" async></script>
+</body>
+
+</html>
