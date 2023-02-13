@@ -1,3 +1,6 @@
+// ------------------ UTILITIES ------------------ 
+
+
 // CONSTANTS
 
 const IMG_SIZE = 28
@@ -174,30 +177,9 @@ async function computeDendrogramLoad(pts, dgramPath){
   return dgram
 }
 
-
-async function loadImgBatched(imgDir, ids, batchSize){
-  const request = (id) => fetch(`${imgDir}/${id}.jpg`).then(response => response.blob())
-
-  // fetch customers in batches of batchSize, delaying inbetween each batch request
-
-  console.log("BEFORE REQUEST")
-    
-  const res = await batchRequest(ids, request, { batchSize: batchSize, delay: 200 })
-  const blobs = []
-
-  console.log("AFTER REQUEST")
-
-  for (var i = 0; i < res.data.length; i++){
-    blobs.push(res.data[i])
-    //var dataUrl = fileReader.readAsDataURL(res.data[i])
-    //console.log(dataUrl)
-    //console.log('data:image/png;base64,' + res.data[i])
-    //var img = loadImage(dataUrl)
-  }
-  return blobs
-}
-
 async function fetchImages(ids, batchSize){
+  // Load images with [ids] as a batch of data URLs
+
   console.log("fetching")
   const response = await fetch("images", {
     method: 'POST',

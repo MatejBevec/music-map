@@ -1,5 +1,8 @@
 
-// RUNTIME
+// ------------------ RUNTIME SCRIPT ------------------ 
+
+
+// -- INIT --
 
 // embedded spotify player
 var embedController = null
@@ -70,12 +73,16 @@ async function setup() {
 
 }
 
+
+// -- DRAW LOOP --
+
 async function draw() {
   if (hasLoaded){ // BODGE
     background(255)
     map.draw()
   }
 }
+
 
 function mouseClicked() {
   // BODGE BODGE BODGE !!!!!!
@@ -132,6 +139,9 @@ function keyPressed(ev) {
     walkPrev()
 }
 
+
+// -- MOUSE ZOOM --
+
 var wheelAmount = 0
 var timeoutId = 0
 
@@ -151,10 +161,8 @@ function mouseWheel(ev) {
   ev.preventDefault()
 }
 
-function keyReleased() {
-  // showAllInfo = false
-}
 
+// -- PINCH ZOOM --
 
 function pointerDownHandler(ev) {
   evCache.push(ev)
@@ -207,6 +215,9 @@ function removeEvent(ev) {
   const index = evCache.findIndex((cachedEv) => cachedEv.pointerId === ev.pointerId)
   evCache.splice(index, 1)
 }
+
+
+// -- WALK (PLAYLIST) NAVIGATION --
 
 function walkNext(){
   if (map.walk)

@@ -1,5 +1,5 @@
 
-// CLASSES
+// ------------------ CLASSES ------------------ 
 
 class DrawablePoint {
 
@@ -231,7 +231,6 @@ class DrawablePoint {
       map.windowW = WINW
       map.windowH = WINH
       map.drawables = drawables
-      //map.imgs = imgs
       map.walk = null
       map.selected = null // current selected song
       map.winImgs = []
@@ -260,7 +259,6 @@ class DrawablePoint {
       winP = winP.filter(p => inXRange(p) && inYRange(p))
   
       var winIdx = winP.map(p => parseInt(p[0].i)) // Best I can think of
-      //var winPoints = winP.map(p => [p[0].x, p[0].y])
   
       return winIdx
   
@@ -309,7 +307,6 @@ class DrawablePoint {
   
       this.p0 = p0
       this.p1 = p1
-      //this.midp = [(xrange[0] + xrange[1])/2, (yrange[0] + yrange[1])/2]
       this.midp = [(p0[0] + p1[0])/2, (p0[1] + p1[1])/2]
   
       var ww = (this.p1[0] - this.p0[0])
@@ -325,19 +322,15 @@ class DrawablePoint {
       var loadIdxSet = [...this.winIdxSet].filter(el => !oldIdxSet.has(el))
       var unloadIdxSet = [...oldIdxSet].filter(el => !this.winIdxSet.has(el))
   
-      //console.log("loaded points", loadIdxSet)
-  
-      // for (var i of loadIdxSet)
-      //   this.drawables[i].loadImg()
-      // for (var i of unloadIdxSet)
-      //   this.drawables[i].unloadImg()
-  
       // load new images in batches
       if (USE_IMG){
+
         for (var i of unloadIdxSet)
           this.drawables[i].unloadImg()
-          //this.imgs[i] = null
+
         var newIds = loadIdxSet.map((idx) => this.meta.ids[idx])
+
+        // -- FETCH IMGS ONE BY ONE --
         // for (let idx of loadIdxSet){
         //   console.log("fetching", idx)
         //   fetch(`${DATA_DIR}/resized_images/${this.meta.ids[idx]}.jpg`).then((res) => {
@@ -345,12 +338,8 @@ class DrawablePoint {
         //     var blob = res.blob()
         //   })
         // }
-        // var promise = loadImgBatched(`${DATA_DIR}/resized_images`, newIds, 20)
-        // promise.then((blobs) => {
-        //   for (var i = 0; i < blobs.length; i++){
-        //     this.drawables[loadIdxSet[i]].loadImgBlob(blobs[i])
-        //   }
-        // })
+        
+        // -- FETCH IMGS AS IN BATCH AS JSON OF DATA URLS --
         fetchImages(newIds, 30).then((dict) => {
           const ids = Object.keys(dict)
           console.log("received: ", ids)
@@ -361,21 +350,6 @@ class DrawablePoint {
         })
       }
   
-      // var imgs = []
-      // for (var i = 0; i < projections.length; i++){
-      //   var id = metadata.ids[i]
-      //   var imgPath = `${DATA_DIR}/resized_images/${id}.jpg`
-      //   var image = null
-      //   try{
-      //     loadImage(imgPath, img => {
-      //       image = img
-      //     })
-      //   } catch (e){}
-      //   imgs[i] = image
-      // }
-  
-  
-      //this.winPoints = this.proj.filter((i,p) => )
     }
   
     moveWindow(midp, delta){
@@ -495,7 +469,6 @@ class DrawablePoint {
       var h = p1[1] - p0[1]
       var wLazy = p1Lazy[0] - p0Lazy[0]
       var hLazy= p1Lazy[1] - p0Lazy[1]
-      //var margin = this.margin * Math.max(width, height)
       var margin = this.toScreen([this.margin, this.margin])[0] //HACK
   
       var mouseP = this.toGlobal([mouseX, mouseY])
@@ -522,7 +495,6 @@ class DrawablePoint {
       // Points
       var size = 5
       var i
-      //for(var i of this.winIdx){
       for (var wi = 0; wi < this.winIdx.length; wi++){
         i = this.winIdx[wi]
         strokeWeight(0)

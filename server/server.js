@@ -3,6 +3,9 @@ const bodyParser = require("body-parser")
 const fs = require("fs")
 const util = require("util")
 
+
+// INIT
+
 const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -23,13 +26,6 @@ const IDS = loadIds()
 app.get("/", (req, res) => {
     res.redirect("/index.html")
 })
-
-function loadImg(path) {
-    const blob = fs.readFileSync(path, "base64url")
-    //return new Buffer.from(blob).toString("base64")
-    return blob
-}
-
 
 function loadImgsSync(ids){
     const batch = {}
@@ -59,7 +55,7 @@ async function loadImgs(ids){
 }
 
 app.get("/images", (req, res) => {
-    // Send the requested batch of images as json of data URLs
+    // TEMP: For testing
     const ids = IDS.slice(0, 100)
     loadImgs(ids).then((batch) => {
         res.json(batch)
@@ -76,20 +72,6 @@ app.post("/images", (req, res) => {
     
 })
 
-app.get("/imgtest", (req, res) => {
-    const batch = {}
-    for (let i = 0; i < 1; i++){
-        const id = IDS[i]
-        const path = DATA_DIR + "/resized_images/" + id + ".jpg"
-        console.log("Reading " + path)
-        let dataUrl = fs.readFileSync(path, "base64url")
-        dataUrl = "data:image/png;base64," + dataUrl
-        batch[id] = dataUrl
-    }
-    res.json(batch)
-})
-
 
 app.use(express.static("../client"))
-
 app.listen(3000)
