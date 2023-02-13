@@ -90,14 +90,31 @@ class DrawablePoint {
       noFill()
       beginShape()
       var p = this.map.toScreen(this.map.proj[this.indices[0]])
+
       curveVertex(p[0], p[1])
       for(var i of this.indices){
         var pGlob = this.map.proj[i]
         p = this.map.toScreen(pGlob)
         curveVertex(p[0], p[1])
+
       }
       curveVertex(p[0], p[1])
+
       endShape()
+
+      for(var i of this.indices){
+        var pGlob = this.map.proj[i]
+        var p = this.map.toScreen(pGlob)
+        fill(255)
+        if (USE_IMG){
+          var size = IMG_SIZE * 1.3
+          rect(p[0]-size/2, p[1]-size/2, size, size)
+        }
+        else
+          ellipse(p[0], p[1], 30, 30)
+        noFill()
+      }
+
     }
 
     moveTo(i){
@@ -135,18 +152,22 @@ class DrawablePoint {
     }
   
     static giro(map, query, controls, dist){
-      var angle = Math.PI
+      var angle = Math.PI * 2 // !
+      var ratio = width/height
       var q = query
       var origin = map.proj[q]
+      // query should be on top of circle:
+      origin = [origin[0], origin[1] + dist]
       var walk = [q]
       for (var i = 0; i < controls; i++){
         var ang = angle * i/(controls-1)
-        var x = origin[0] + dist * Math.cos(ang)
-        var y = origin[1] + dist * Math.sin(ang)
+        var x = origin[0] + dist * Math.cos(ang - Math.PI/2)
+        var y = origin[1] + dist * ratio * Math.sin(ang - Math.PI/2)
         var next = map.findPoint([x, y], 1)
         walk.push(next)
       }
-      walk.push(q)
+      //walk.push(q)
+      walk[walk.length-1] = q // !
       console.log("walk", walk)
   
       return new Walk(map, walk)

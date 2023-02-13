@@ -236,7 +236,7 @@ function walkDelete(){
 
 function walkMake(){
   var q = map.findPoint(map.midp)
-  map.walk = Walk.giro(map, q, 10, 0.05)
+  map.walk = Walk.giro(map, q, 11, 0.04)
   map.walk.moveTo(0)
   document.getElementById("c-delete").innerHTML = "delete" // BODGE
 }
