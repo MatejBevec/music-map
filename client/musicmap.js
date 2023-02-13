@@ -372,6 +372,11 @@ class DrawablePoint {
       }
   
     }
+
+    resetWindow(){
+      this.winIdx = []
+      this.changeWindow(this.p0, this.p1)
+    }
   
     moveWindow(midp, delta){
       if (midp == null)

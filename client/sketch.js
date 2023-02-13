@@ -127,8 +127,10 @@ function keyPressed(ev) {
   }
   if (key == "q")
     DEBUG_MODE = !DEBUG_MODE
-  if (key == "w")
+  if (key == "w"){
     USE_IMG = !USE_IMG
+    map.resetWindow()
+  }
   if (key == "a")
     walkMake()
   if (key == "d")
