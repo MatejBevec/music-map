@@ -21,6 +21,10 @@ const SCALE_COLLAPSED = true
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 0.2
 
+const WALK_STROKE = 2
+const IMG_SEL_PAD = 8
+const DOT_SEL_PAD = 16
+
 
 
 // GLOBAL VARIABLES

@@ -3,7 +3,8 @@
 
 class DrawablePoint {
 
-    constructor(idx, id, info, imgPath, clipPath){
+    constructor(map, idx, id, info, imgPath, clipPath){
+      this.map = map
       this.idx = idx
       this.id = id
       this.info = info
@@ -54,18 +55,27 @@ class DrawablePoint {
     }
   
     draw(pos, color, circleSize){
+
+      var r, g, b
+      [r, g, b] = color
+      fill(r, g, b)
   
       var size = IMG_SIZE
       if (this.img && USE_IMG){
         image(this.img, pos[0]-size/2, pos[1]-size/2, size, size)
+
+        // if (this.map.selected == this.idx){
+        //   var size = IMG_SIZE + IMG_SEL_PAD
+        //   rect(pos[0]-size/2, pos[1]-size/2, size, size)
+        // }
+      
       }
       else{
         strokeWeight(0)
-        var r, g, b
-        [r, g, b] = color
-        fill(r, g, b)
         ellipse(pos[0], pos[1], circleSize, circleSize)
         //text(this.idx, pos[0], pos[1])
+        // if (this.map.selected == this.idx)
+        //   ellipse(pos[0], pos[1], DOT_SEL_PAD, DOT_SEL_PAD)
       }
   
   
@@ -84,7 +94,7 @@ class DrawablePoint {
     }
   
     draw() {
-      strokeWeight(2)
+      strokeWeight(WALK_STROKE)
       var c = this.map.colors[this.indices[0]]
       stroke(c[0], c[1], c[2])
       noFill()
@@ -107,11 +117,11 @@ class DrawablePoint {
         var p = this.map.toScreen(pGlob)
         fill(255)
         if (USE_IMG){
-          var size = IMG_SIZE * 1.3
+          var size = IMG_SIZE + IMG_SEL_PAD
           rect(p[0]-size/2, p[1]-size/2, size, size)
         }
         else
-          ellipse(p[0], p[1], 30, 30)
+          ellipse(p[0], p[1], DOT_SEL_PAD, DOT_SEL_PAD)
         noFill()
       }
 
@@ -159,10 +169,10 @@ class DrawablePoint {
       // query should be on top of circle:
       origin = [origin[0], origin[1] + dist]
       var walk = [q]
-      for (var i = 0; i < controls; i++){
+      for (var i = 1; i < controls; i++){
         var ang = angle * i/(controls-1)
         var x = origin[0] + dist * Math.cos(ang - Math.PI/2)
-        var y = origin[1] + dist * ratio * Math.sin(ang - Math.PI/2)
+        var y = origin[1] + dist * Math.sin(ang - Math.PI/2)
         var next = map.findPoint([x, y], 1)
         walk.push(next)
       }
@@ -212,7 +222,7 @@ class DrawablePoint {
         var imgPath = `${DATA_DIR}/resized_images/${id}.jpg` // TEMP!!!
         var audioPath = `${DATA_DIR}/clips/${id}.mp3` 
         //var img = imgs[i]
-        var drawable = new DrawablePoint(i, id, metadata.info[id], imgPath, audioPath)
+        var drawable = new DrawablePoint(this, i, id, metadata.info[id], imgPath, audioPath)
         drawables.push(drawable)
       }
   
@@ -425,7 +435,8 @@ class DrawablePoint {
       var p = this.proj[idx]
       this.moveWindow(p, null)
       //this.drawables[idx].playClip()
-      console.log("spotify:track:" + this.meta.ids[idx])
+      this.selected = idx
+      console.log("HELLO", this.selected)
       embedController.loadUri("spotify:track:" + this.meta.ids[idx])
     }
   
@@ -540,6 +551,15 @@ class DrawablePoint {
         var label = this.getLabel(hoverIdx)
         var hoverP = this.toScreen(this.proj[hoverIdx])
         text(label, hoverP[0]+5, hoverP[1])
+      }
+
+      // Selected
+      if (this.selected){
+        fill(255, 0, 0)
+        let p = this.proj[this.selected]
+        p = this.toScreen(p)
+        p[1] -= 10
+        triangle(p[0], p[1]-10, p[0]-5, p[1]-20, p[0]+5, p[1]-20)
       }
     }
   
