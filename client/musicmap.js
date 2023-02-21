@@ -17,7 +17,6 @@ class DrawablePoint {
       this.genre = null
       this.color = null
       if (USE_GENRE_COLORS){
-        console.log(this.map)
         this.genre = this.map.meta.info[this.id]["genre_class"]
         this.color = GENRE_COLORS[this.genre]
       }
@@ -166,7 +165,6 @@ class DrawablePoint {
         q = next
       }
       walk = [...new Set(walk)]
-      console.log("walk", walk)
       for(var i of walk) console.log(i)
   
       return new Walk(map, walk)
@@ -189,7 +187,6 @@ class DrawablePoint {
       }
       //walk.push(q)
       walk[walk.length-1] = q // !
-      console.log("walk", walk)
   
       return new Walk(map, walk)
     }
@@ -287,6 +284,7 @@ class DrawablePoint {
       map.p1 = 0.5
       map.moveDone = true
       map.changeWindow([0.5-WINW/2, 0.5-WINH/2], [0.5+WINW/2, 0.5+WINH/2])
+      map.moveWindow([0.5, 0.5])
       return map
   
     }
@@ -342,6 +340,9 @@ class DrawablePoint {
   
     changeWindow(p0, p1){
       // Called when viewing window changes (zoom or move)
+
+      if (p0.includes(NaN) || p1.includes(NaN))
+        return
   
       var oldIdxSet = new Set(this.winIdx)
   
@@ -455,7 +456,6 @@ class DrawablePoint {
       this.moveWindow(p, null)
       //this.drawables[idx].playClip()
       this.selected = idx
-      console.log("HELLO", this.selected)
       embedController.loadUri("spotify:track:" + this.meta.ids[idx])
     }
   
@@ -479,7 +479,7 @@ class DrawablePoint {
           tags.push(info[ids[i]][attr])
       }
       counts = getArrayCounts(tags)
-      console.log(counts)
+      //console.log(counts)
       return Object.keys(counts)[0]
     }
   

@@ -14,9 +14,6 @@ window.onSpotifyIframeApiReady = (IFrameAPI) => {
       //uri: 'spotify:episode:7makk4oTQel546B0PZlDM5'
     };
   let callback = (EmbedController) => {
-    //console.log(element.contentWindow)
-    //element.style.height = element.contentWindow.document.body.scrollHeight + 'px';
-    console.log("SETTING CONTROLLER")
     embedController = EmbedController
   };
   IFrameAPI.createController(element, options, callback);
@@ -89,7 +86,6 @@ function mouseClicked() {
   if (mouseY < 80) return
   var p = map.toGlobal([mouseX, mouseY])
   var w = map.windowW
-  console.log("CLICK HANDLER")
   map.moveWindow(p, null)
 }
 
@@ -125,6 +121,7 @@ function keyPressed(ev) {
   else if (key === "1"){
     map.minDist = Math.max(map.minDist - 0.005, 0)
   }
+  console.log("got to q, w")
   if (key == "q")
     DEBUG_MODE = !DEBUG_MODE
   if (key == "w"){
@@ -154,7 +151,6 @@ function mouseWheel(ev) {
   console.log("scroll")
 
   timeoutId = setTimeout(() => {
-    console.log("SCROLL TIMEOUT HANDLER")
     map.zoomWindow(ZOOM_AMOUNT * wheelAmount)
     console.log("timeout", wheelAmount)
     wheelAmount = 0
@@ -206,7 +202,6 @@ function pointerUpHandler(ev){
   document.body.style.zoom = 1;
   if (evCache.length < 2 && evCache.length > 0) {
     const zoomAmount = prevDiff/diagonal
-    console.log("UP HANDLER")
     map.zoomWindow(zoomAmount)
     prevDiff = -1
   }
