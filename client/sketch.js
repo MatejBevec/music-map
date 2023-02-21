@@ -57,8 +57,8 @@ async function setup() {
 
   // load paths
   var embPath = `${DATA_DIR}/embeddings.json`
-  var projPath = `${DATA_DIR}/embeddings_proj.json`
-  var dgramPath = `${DATA_DIR}/embeddings_proj_dgram.json`
+  var projPath = `${DATA_DIR}/projected.json`
+  var dgramPath = `${DATA_DIR}/dgram.json`
   
   // create music map object
   var ids = await fetchJson(`${DATA_DIR}/graph.json`)

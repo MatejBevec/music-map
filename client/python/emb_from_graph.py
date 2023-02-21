@@ -6,6 +6,7 @@ import json
 import numpy as np
 import sklearn
 from sklearn.manifold import MDS
+import scipy
 
 
 def jaccard_index(g):
@@ -41,22 +42,37 @@ def emb_from_sims(sims):
 
     print("embedding")
 
-    mds = MDS(n_components=64, metric=True, dissimilarity="precomputed")
+    mds = MDS(n_components=8, metric=True, dissimilarity="precomputed")
 
-    emb = mds.fit_transform(sims)
+    emb = mds.fit_transform(1 - sims)
 
     return emb
 
 if __name__ == "__main__":
 
-    gpth = sys.argv[1]
-    savepth = gpth.rsplit(".")[-2] + "_emb.json"
+    head = sys.argv[1]
+
+    gpth = head + "/graph.json"
+    savepth = head + "/embeddings.json"
 
     with open(gpth, "r") as f:
         g = json.load(f)
 
     sims = jaccard_index(g)
     emb = emb_from_sims(sims)
+
+    sims = 1 - scipy.spatial.distance_matrix(emb, emb)
+
+    with open(head + "/tracks.json", "r") as f:
+        tracks = json.load(f)
+    for i in range(10):
+        row = sims[i, :]
+        sortedrow = np.flip(np.argsort(row))
+        for j in range(0, 4):
+            query = g["tracks"][sortedrow[j]]
+            print(tracks[query]["name"], "  ")
+        print("\n")
+        
 
     print(savepth)
 

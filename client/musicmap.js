@@ -13,6 +13,14 @@ class DrawablePoint {
       this.clipPath = clipPath
       //this.clip = null
       this.reader = null
+
+      this.genre = null
+      this.color = null
+      if (USE_GENRE_COLORS){
+        console.log(this.map)
+        this.genre = this.map.meta.info[this.id]["genre_class"]
+        this.color = GENRE_COLORS[this.genre]
+      }
     }
   
     loadImgBlob(blob){
@@ -57,7 +65,10 @@ class DrawablePoint {
     draw(pos, color, circleSize){
 
       var r, g, b
-      [r, g, b] = color
+      if (USE_GENRE_COLORS && this.genre != null)
+        [r, g, b] = this.color
+      else 
+        [r, g, b] = color
       fill(r, g, b)
   
       var size = IMG_SIZE
@@ -214,17 +225,7 @@ class DrawablePoint {
   
       // TEMP: Load precomputed TSNE projections
       var projections = await fetchJson(projectedPath)
-  
-      //OR SHOULD WE INSTANTIATE POINTS ON WINDOW CHANGE?
-      var drawables = []
-      for (i = 0; i < projections.length; i++){
-        var id = metadata.ids[i]
-        var imgPath = `${DATA_DIR}/resized_images/${id}.jpg` // TEMP!!!
-        var audioPath = `${DATA_DIR}/clips/${id}.mp3` 
-        //var img = imgs[i]
-        var drawable = new DrawablePoint(this, i, id, metadata.info[id], imgPath, audioPath)
-        drawables.push(drawable)
-      }
+
   
   
       // Init colors (for demonstration)
@@ -249,6 +250,7 @@ class DrawablePoint {
   
       // Create and the MusicMap object
       var map = new MusicMap()
+
       map.emb = embeddings
       map.proj = projections
       map.winPoints = map.proj
@@ -261,12 +263,25 @@ class DrawablePoint {
       map.meta = metadata
       map.windowW = WINW
       map.windowH = WINH
-      map.drawables = drawables
       map.walk = null
       map.selected = null // current selected song
       map.winImgs = []
       map.winSizes = []
       map.imgs = new Array(map.proj.length).fill(null)
+      map.topTag = ""
+
+
+      //OR SHOULD WE INSTANTIATE POINTS ON WINDOW CHANGE?
+      var drawables = []
+      for (i = 0; i < projections.length; i++){
+        var id = metadata.ids[i]
+        var imgPath = `${DATA_DIR}/resized_images/${id}.jpg` // TEMP!!!
+        var audioPath = `${DATA_DIR}/clips/${id}.mp3` 
+        //var img = imgs[i]
+        var drawable = new DrawablePoint(map, i, id, metadata.info[id], imgPath, audioPath)
+        drawables.push(drawable)
+      }
+      map.drawables = drawables
   
       map.p0 = 0.5
       map.p1 = 0.5
@@ -380,6 +395,10 @@ class DrawablePoint {
           }
         })
       }
+
+
+      // change current top genre tag
+      this.topTag = this.getTopTag("genre_class")
   
     }
 
@@ -447,6 +466,21 @@ class DrawablePoint {
         return title
       }
       else return ""
+    }
+
+    getTopTag(attr){
+      let tags = []
+      let info = this.meta.info
+      let ids = this.meta.ids
+      for (const i of this.winIdx){
+        if (info[ids[i]][attr] instanceof Array)
+          tags = tags.concat(info[ids[i]][attr])
+        else
+          tags.push(info[ids[i]][attr])
+      }
+      counts = getArrayCounts(tags)
+      console.log(counts)
+      return Object.keys(counts)[0]
     }
   
     toScreen(point){
@@ -561,6 +595,10 @@ class DrawablePoint {
         p[1] -= 10
         triangle(p[0], p[1]-10, p[0]-5, p[1]-20, p[0]+5, p[1]-20)
       }
+
+      // Current top tag
+      fill(0, 0, 0)
+      text(this.topTag, 32, height-32)
     }
   
   }

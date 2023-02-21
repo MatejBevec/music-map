@@ -25,6 +25,24 @@ const WALK_STROKE = 2
 const IMG_SEL_PAD = 8
 const DOT_SEL_PAD = 16
 
+const USE_GENRE_COLORS = true
+const GENRE_COLORS = {
+  "classical": [187, 235, 255],
+  "country": [85, 60, 38],
+  "blues": [61, 85, 38],
+  "folk": [166, 145, 103],
+  "rock": [40, 99, 205],
+  "punk": [12, 184, 180],
+  "metal": [4, 50, 50],
+  "jazz": [255, 197, 226],
+  "soul": [217, 57, 137],
+  "pop": [240, 58, 58],
+  "electronic": [254, 219, 43],
+  "hiphop": [107, 201, 72],
+  "reggae": [52, 120, 27],
+  "latin": [254, 126, 58],
+  "other": [0, 0, 0]
+}
 
 
 // GLOBAL VARIABLES
@@ -196,4 +214,18 @@ async function fetchImages(ids, batchSize){
   console.log("awaited response")
   const json = await response.json()
   return json
+}
+
+function getArrayCounts(arr){
+  counts = {}
+  for (const el of arr) {
+    counts[el] = counts[el] ? counts[el] + 1 : 1
+  }
+  const sortable = Object.entries(counts).sort((a, b) => b[1] - a[1])
+  counts = {}
+  for (const pair of sortable){
+    counts[pair[0]] = pair[1]
+  }
+  console.log(counts)
+  return counts
 }

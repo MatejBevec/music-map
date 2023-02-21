@@ -24,8 +24,9 @@ def compute_dgram(pts):
 
 if __name__ == "__main__":
 
-    srcpth = sys.argv[1]
-    savepth = srcpth.rsplit(".")[-2] + "_dgram.json"
+    head = sys.argv[1]
+    srcpth = head + "/projected.json"
+    savepth = head + "/dgram.json"
 
     with open(srcpth, "r") as f:
         pts = json.load(f)
