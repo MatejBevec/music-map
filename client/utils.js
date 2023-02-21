@@ -14,7 +14,7 @@ const TRANSITION = 1 // tr. time in seconds
 const TR_RATIO = 0.1
 const TR_THR = 0.0001
 
-const MIN_DIST = 0.02
+const MIN_DIST = 0.04
 const ADAPT_MIN_DIST = true
 const SCALE_COLLAPSED = true
 
@@ -228,4 +228,10 @@ function getArrayCounts(arr){
   }
   console.log(counts)
   return counts
+}
+
+function clampString(str, n){
+  if (str.length > n)
+    str = str.substring(0, n) + "..."
+  return str
 }

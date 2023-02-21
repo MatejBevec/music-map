@@ -357,7 +357,8 @@ class DrawablePoint {
       this.midp = [(p0[0] + p1[0])/2, (p0[1] + p1[1])/2]
   
       var ww = (this.p1[0] - this.p0[0])
-      this.minDist = MIN_DIST * ww
+      this.minDist = MIN_DIST * (ww - MIN_ZOOM)
+      console.log(this.minDist)
       
       this.winIdxAll = this.pointsInWindow(p0, p1)
   
@@ -460,10 +461,13 @@ class DrawablePoint {
     }
   
     getLabel(idx){
+      //console.log("called")
       if (idx){
         var id = this.meta.ids[idx]
-        var title = this.meta.info[id]["name"] 
-        return title
+        var label = []
+        label.push(clampString(this.meta.info[id]["name"], 20))
+        label.push(this.meta.info[id]["artist"])
+        return label
       }
       else return ""
     }
@@ -576,7 +580,6 @@ class DrawablePoint {
         //fill(r, g, b)
         //ellipse(p[0], p[1], 5, 5)
         if (SCALE_COLLAPSED) size = Math.sqrt(this.winSizes[wi]) * 5
-  
         this.drawables[i].draw(p, this.colors[i], size)
       }
   
@@ -584,7 +587,22 @@ class DrawablePoint {
       if (hoverIdx){
         var label = this.getLabel(hoverIdx)
         var hoverP = this.toScreen(this.proj[hoverIdx])
-        text(label, hoverP[0]+5, hoverP[1])
+        let l = hoverP[0] + IMG_SIZE/2 + 10
+
+        textStyle(BOLD)
+        textSize(8)
+        let awidth = textWidth(label[1])
+        textStyle(NORMAL)
+        textSize(10)
+        let nwidth = textWidth(label[0])
+        fill(255, 255, 255)
+        rect(l-5, hoverP[1] - 10, Math.max(awidth, nwidth) + 10, 24)
+        fill(0, 0, 0)
+        text(label[0], l, hoverP[1] + 9)
+        textStyle(BOLD)
+        textSize(8)
+        text(label[1], l, hoverP[1] - 1)
+
       }
 
       // Selected
