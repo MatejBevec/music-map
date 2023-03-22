@@ -200,7 +200,7 @@ class DrawablePoint {
     constructor(){      
     }
   
-    static async build(embeddings, projectedPath, dgramPath, metadata, imgDir){
+    static async build(embeddings, projectedPath, dgramPath, landmarksPath, metadata, imgDir){
       
       if (typeof embeddings === 'string' || embeddings instanceof String){
         print(embeddings)
@@ -244,6 +244,11 @@ class DrawablePoint {
   
       // Construct hierarchical dendrogram (for min. dist. collapsing)
       var dgram = await computeDendrogramLoad(projections, dgramPath)
+
+      // Load subgenre grid pyramid
+      var landmarkGrid, landmarkSizes
+      [landmarkSizes, landmarkGrid] = await fetchJson(landmarksPath)
+
   
       // Create and the MusicMap object
       var map = new MusicMap()
@@ -266,6 +271,10 @@ class DrawablePoint {
       map.winSizes = []
       map.imgs = new Array(map.proj.length).fill(null)
       map.topTag = ""
+      map.landmarkGrid = landmarkGrid
+      map.landmarkSizes = landmarkSizes
+
+      console.log(map.landmarkGrid)
 
 
       //OR SHOULD WE INSTANTIATE POINTS ON WINDOW CHANGE?
@@ -518,6 +527,70 @@ class DrawablePoint {
       }
       return [x, y]
     }
+
+    computeGenreGridView(){
+      // Compute current view of the subgenre grid
+
+      let zoom = this.p1[0] - this.p0[0]
+      if (zoom > GENRE_GRID_LEVELS[0])
+        return null
+
+      // CLEAN THIS UP
+      let i
+      for (i = 0; i < GENRE_GRID_LEVELS.length; i++)
+        if (zoom > GENRE_GRID_LEVELS[i]){
+          //i -= 1
+          break
+        }
+      i -= 1
+      //cellSize = GENRE_GRID_LEVELS[i]
+      //console.log(i)
+      let cellSize = this.landmarkSizes[i]
+      //console.log(this.landmarkGrid)
+      //console.log(this.landmarkGrid[i])
+      let subGrid = this.landmarkGrid[i][0]
+      let topGrid = this.landmarkGrid[i][1]
+
+      let x = 0.0; let xs = []
+      let xi = 0; let xis = []
+      while(x < 1.0){
+        if (xi+cellSize > this.p0[0] || xi < this.p1[0]){
+          xs.push(x)
+          xis.push(xi)
+        }
+        x += cellSize
+        xi ++
+      }
+      let y = 0.0; let ys = []
+      let yi = 0; let yis = []
+      while(y < 1.0){
+        if (yi+cellSize > this.p0[1] || yi < this.p1[1]){
+          ys.push(y)
+          yis.push(yi)
+        }
+        y += cellSize
+        yi ++
+      }
+
+      let cells = []
+
+      //console.log(xs.length, s.length, cellSize, i, xis, yis)
+      for (let a = 0; a < xs.length; a++){
+        for (let b = 0; b < ys.length; b++){
+          let fr = [xs[a], ys[b]]
+          let to = [fr[0]+cellSize, fr[1]+cellSize]
+          console.log(a, b, xis[a], yis[b])
+          let subgenre = subGrid[xis[a]][yis[b]]
+          let genre = topGrid[xis[a]][yis[b]]
+          let cell = {from: this.toScreen(fr), to: this.toScreen(to), 
+                  genre: genre, subgenre: subgenre}
+          cells.push(cell)
+        }
+      }
+
+      //console.log(cells)
+      return cells
+    }
   
     draw(){
       // Draw points every step
@@ -548,6 +621,18 @@ class DrawablePoint {
   
       var mouseP = this.toGlobal([mouseX, mouseY])
       var hoverIdx = this.findPoint(mouseP)
+
+      // Subgenre grid cells
+      let cells = this.computeGenreGridView()
+      for (let cell of cells){
+        noStroke()
+        if (cell.subgenre == "")
+          continue
+        fill(200, 200, 200)
+        rect(cell.from[0], cell.from[1], cell.to[0], cell.to[1])
+        fill(0, 0, 0)
+        text(cell.subgenre, cell.from[0], cell.from[1] + 16)
+      }
   
       // Window center and borders
       strokeWeight(1)
@@ -562,6 +647,7 @@ class DrawablePoint {
         stroke(200)
         rect(p0Lazy[0]-margin, p0Lazy[1]-margin, wLazy+2*margin, hLazy+2*margin)
       }
+
   
       // Walk
       if (this.walk)

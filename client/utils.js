@@ -44,6 +44,8 @@ const GENRE_COLORS = {
   "other": [0, 0, 0]
 }
 
+const GENRE_GRID_LEVELS = [0.4, 0.2, 0.1]
+
 
 // GLOBAL VARIABLES
 
@@ -234,4 +236,19 @@ function clampString(str, n){
   if (str.length > n)
     str = str.substring(0, n) + "..."
   return str
+}
+
+function sortIndex(arr){
+  let arr_index = []
+  for (let i in arr) arr_index.push([i, arr[i]])
+  arr_index.sort((a, b) => a[1] < b[1] ? -1 : 1)
+  let sorted_index = []
+  let sorted = []
+  for (let i in arr){
+    sorted_index.push(arr_index[i][0])
+    sorted.push(arr_index[i][1])
+  }
+
+  return [sorted, sorted_index]
+
 }

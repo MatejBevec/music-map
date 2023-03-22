@@ -56,15 +56,19 @@ async function setup() {
   var embPath = `${DATA_DIR}/embeddings.json`
   var projPath = `${DATA_DIR}/projected.json`
   var dgramPath = `${DATA_DIR}/dgram.json`
+  var landmarksPath = `${DATA_DIR}/landmarks.json`
   
   // create music map object
   var ids = await fetchJson(`${DATA_DIR}/graph.json`)
+  var index
+  [ids, index] = sortIndex(ids["tracks"])
   var info = await fetchJson(`${DATA_DIR}/tracks.json`)
+
   var metadata = {
-    ids: ids["tracks"],
+    ids: ids,
     info: info
   }
-  map = await MusicMap.build(embPath, projPath, dgramPath, metadata, null)
+  map = await MusicMap.build(embPath, projPath, dgramPath, landmarksPath, metadata, null)
   //map.moveWindow((0.5,0.5))
   hasLoaded = true
 

@@ -8,6 +8,17 @@ import numpy as np
 import sklearn
 from sklearn.manifold import MDS
 
+GENRES = ['blues', 'classical', 'country', 'electronic', 'folk', 'hiphop', 'jazz',
+                 'latin','metal', 'other', 'pop', 'punk', 'reggae', 'rock', 'soul']
+
+COLORS = ["darkgreen", "midnightblue", "saddlebrown", "gold", "chocolate", "limegreen", "lightcoral",
+          "orange", "black", "gray", "red", "teal", "darkgreen", "steelblue", "deeppink"]
+
+COLORMAP = {g: c for g, c in zip(GENRES, COLORS)}
+
+# ["chocolate", "gray", "saddlebrown", "yellow", "limegreen", "lightcoral", "orange", "black", 
+#            "midnightblue", "red", "teal", "darkgreen", "steelblue", "deeppink"]
+
 def genre_classes(tracks):
 
     genre_classes = {}
