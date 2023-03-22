@@ -203,7 +203,6 @@ class DrawablePoint {
     static async build(embeddings, projectedPath, dgramPath, landmarksPath, metadata, imgDir){
       
       if (typeof embeddings === 'string' || embeddings instanceof String){
-        print(embeddings)
         embeddings = await fetchJson(embeddings)
       }
   
@@ -273,6 +272,7 @@ class DrawablePoint {
       map.topTag = ""
       map.landmarkGrid = landmarkGrid
       map.landmarkSizes = landmarkSizes
+      map.landmarkGridView = null
 
       console.log(map.landmarkGrid)
 
@@ -367,7 +367,6 @@ class DrawablePoint {
   
       var ww = (this.p1[0] - this.p0[0])
       this.minDist = MIN_DIST * (ww - MIN_ZOOM)
-      console.log(this.minDist)
       
       this.winIdxAll = this.pointsInWindow(p0, p1)
   
@@ -399,7 +398,7 @@ class DrawablePoint {
         // -- FETCH IMGS AS IN BATCH AS JSON OF DATA URLS --
         fetchImages(newIds, 30).then((dict) => {
           const ids = Object.keys(dict)
-          console.log("received: ", ids)
+          //console.log("received: ", ids)
           for (let i = 0; i < ids.length; i++){
             const dataUrl = dict[ids[i]]
             this.drawables[loadIdxSet[i]].loadImg()
@@ -410,6 +409,9 @@ class DrawablePoint {
 
       // change current top genre tag
       this.topTag = this.getTopTag("genre_class")
+      
+      // compute subgenre grid info for current view
+      this.landmarkGridView = this.computeGenreGridView()
   
     }
 
@@ -536,13 +538,16 @@ class DrawablePoint {
         return null
 
       // CLEAN THIS UP
+      print(zoom, GENRE_GRID_LEVELS)
       let i
       for (i = 0; i < GENRE_GRID_LEVELS.length; i++)
         if (zoom > GENRE_GRID_LEVELS[i]){
           //i -= 1
+          print("exiting at: ", i)
           break
         }
       i -= 1
+      print(i)
       //cellSize = GENRE_GRID_LEVELS[i]
       //console.log(i)
       let cellSize = this.landmarkSizes[i]
@@ -551,9 +556,13 @@ class DrawablePoint {
       let subGrid = this.landmarkGrid[i][0]
       let topGrid = this.landmarkGrid[i][1]
 
+      
+
+      // Compute visible cell borders in x and y
+      // and which global cell indices (xi, yi) they correspond to
       let x = 0.0; let xs = []
       let xi = 0; let xis = []
-      while(x < 1.0){
+      while(x < 0.9999999){
         if (xi+cellSize > this.p0[0] || xi < this.p1[0]){
           xs.push(x)
           xis.push(xi)
@@ -563,7 +572,7 @@ class DrawablePoint {
       }
       let y = 0.0; let ys = []
       let yi = 0; let yis = []
-      while(y < 1.0){
+      while(y < 0.9999999){
         if (yi+cellSize > this.p0[1] || yi < this.p1[1]){
           ys.push(y)
           yis.push(yi)
@@ -572,17 +581,19 @@ class DrawablePoint {
         yi ++
       }
 
+      print(cellSize, subGrid.length, xis.length)
       let cells = []
 
       //console.log(xs.length, s.length, cellSize, i, xis, yis)
+      // Populate visible cells with subgenre info
       for (let a = 0; a < xs.length; a++){
         for (let b = 0; b < ys.length; b++){
           let fr = [xs[a], ys[b]]
           let to = [fr[0]+cellSize, fr[1]+cellSize]
-          console.log(a, b, xis[a], yis[b])
+          //console.log(a, b, xis[a], yis[b])
           let subgenre = subGrid[xis[a]][yis[b]]
           let genre = topGrid[xis[a]][yis[b]]
-          let cell = {from: this.toScreen(fr), to: this.toScreen(to), 
+          let cell = {from: fr, to: to, 
                   genre: genre, subgenre: subgenre}
           cells.push(cell)
         }
@@ -623,15 +634,25 @@ class DrawablePoint {
       var hoverIdx = this.findPoint(mouseP)
 
       // Subgenre grid cells
-      let cells = this.computeGenreGridView()
-      for (let cell of cells){
-        noStroke()
-        if (cell.subgenre == "")
-          continue
-        fill(200, 200, 200)
-        rect(cell.from[0], cell.from[1], cell.to[0], cell.to[1])
-        fill(0, 0, 0)
-        text(cell.subgenre, cell.from[0], cell.from[1] + 16)
+      if (this.landmarkGridView){
+        let cells = this.landmarkGridView
+        if (cells != null)
+          for (let cell of cells){
+            noStroke()
+            if (cell.subgenre == "")
+              continue
+            let clr = GENRE_COLORS[cell.genre]
+            fill(clr[0], clr[1], clr[2], 100)
+            let to = this.toScreen(cell.to)
+            let from = this.toScreen(cell.from)
+            let cellW = to[0] - from[0]
+            let cellH = to[1] - from[1]
+            rect(from[0], from[1], cellW, cellH)
+            fill(0, 0, 0)
+            textAlign(CENTER)
+            text(cell.subgenre, from[0] + cellW/2, from[1] + cellH/2)
+            textAlign(LEFT)
+          }
       }
   
       // Window center and borders

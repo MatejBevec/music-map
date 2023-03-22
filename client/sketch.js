@@ -126,8 +126,10 @@ function keyPressed(ev) {
     map.minDist = Math.max(map.minDist - 0.005, 0)
   }
   console.log("got to q, w")
-  if (key == "q")
+  if (key == "q"){
     DEBUG_MODE = !DEBUG_MODE
+    map.moveWindow(null, [0, 0]) // HACK
+  }
   if (key == "w"){
     USE_IMG = !USE_IMG
     map.resetWindow()

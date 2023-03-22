@@ -19,7 +19,7 @@ const ADAPT_MIN_DIST = true
 const SCALE_COLLAPSED = true
 
 const MIN_ZOOM = 0.01
-const MAX_ZOOM = 0.2
+const MAX_ZOOM = 0.4
 
 const WALK_STROKE = 2
 const IMG_SEL_PAD = 8
