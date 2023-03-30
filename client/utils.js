@@ -156,7 +156,7 @@ function computeDendrogram(pts){
     var nearestPair = nearest.slice().sort((a, b) => a.dist - b.dist)[0]
     var a = nearestPair.a
     var b = nearestPair.b
-    console.log("joining: ", a.toString(), " and ", b.toString())
+    //console.log("joining: ", a.toString(), " and ", b.toString())
 
     dgram.delete(a)
     dgram.delete(b)
@@ -204,7 +204,7 @@ async function computeDendrogramLoad(pts, dgramPath){
 async function fetchImages(ids, batchSize){
   // Load images with [ids] as a batch of data URLs
 
-  console.log("fetching")
+  //console.log("fetching")
   const response = await fetch("images", {
     method: 'POST',
     headers: {
@@ -213,7 +213,7 @@ async function fetchImages(ids, batchSize){
     },
     body: JSON.stringify(ids)
   })
-  console.log("awaited response")
+  //console.log("awaited response")
   const json = await response.json()
   return json
 }
@@ -228,7 +228,7 @@ function getArrayCounts(arr){
   for (const pair of sortable){
     counts[pair[0]] = pair[1]
   }
-  console.log(counts)
+  //console.log(counts)
   return counts
 }
 

@@ -188,7 +188,7 @@ class DrawablePoint {
     }
   
     static giro(map, query, controls, dist){
-      // Factory: build walk in a circle starting at ending at query
+      // Factory: build walk in a circle starting and ending at query
 
       var angle = Math.PI * 2 // !
       var ratio = width/height
@@ -206,8 +206,26 @@ class DrawablePoint {
         walk.push(next)
       }
       walk[walk.length-1] = q // !
-  
+
       return new Walk(map, walk)
+    }
+
+    static journey(map, from, to, controls, k){
+        // Factory: build walk starting at one query and ending at another
+        
+        let walk = [from]
+        let fromPt = map.proj[from]
+        let toPt = map.proj[to]
+        for (let i = 1; i < controls; i++){
+            let x = fromPt[0] + (toPt[0] - fromPt[0]) * (i/controls)
+            let y = fromPt[1] + (toPt[1] - fromPt[1]) * (i/controls)
+            let pick = Math.trunc(Math.random() * k) + 1
+            let next = map.findPoint([x, y], pick)
+            walk.push(next)
+        }
+        walk.push(to)
+
+        return new Walk(map, walk)
     }
   
   }

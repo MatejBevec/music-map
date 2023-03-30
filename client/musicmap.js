@@ -259,7 +259,8 @@
       var pt = this.tree.nearest({x: point[0], y: point[1]}, 100)
       var sorted = pt.sort((a, b) => a[1] - b[1])
       var indices = sorted.map(p => parseInt(p[0].i))
-      var filtered = indices.filter(idx => this.winIdxSet.has(idx))
+      //var filtered = indices.filter(idx => this.winIdxSet.has(idx))
+      var filtered = indices
       if (!k) k = 0
       var idx = filtered[k]
       return idx

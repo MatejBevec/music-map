@@ -125,7 +125,6 @@ function keyPressed(ev) {
   else if (key === "1"){
     map.minDist = Math.max(map.minDist - 0.005, 0)
   }
-  console.log("got to q, w")
   if (key == "q"){
     DEBUG_MODE = !DEBUG_MODE
     map.moveWindow(null, [0, 0]) // HACK
@@ -239,7 +238,8 @@ function walkDelete(){
 
 function walkMake(){
   var q = map.findPoint(map.midp)
-  map.walk = Walk.giro(map, q, 11, 0.04)
+  //map.walk = Walk.giro(map, q, 11, 0.04)
+  map.walk = Walk.journey(map, Math.trunc(Math.random() * 5000) + 1, Math.trunc(Math.random() * 5000) + 1, 12, 1)
   map.walk.moveTo(0)
   document.getElementById("c-delete").innerHTML = "delete" // BODGE
 }
