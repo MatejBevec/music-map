@@ -138,7 +138,7 @@ class DrawablePoint {
       for(var i of this.indices){
         var pGlob = this.map.proj[i]
         var p = this.map.toScreen(pGlob)
-        fill(255)
+        noFill()
         if (USE_IMG){
           var size = IMG_SIZE + IMG_SEL_PAD
           rect(p[0]-size/2, p[1]-size/2, size, size)

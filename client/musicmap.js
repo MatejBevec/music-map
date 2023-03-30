@@ -71,6 +71,8 @@
       map.landmarkGrid = landmarkGrid
       map.landmarkSizes = landmarkSizes
       map.landmarkGridView = null
+      map.prevGridView = null
+      map.interpol = 1
 
       // Create instances for displayed song nodes
       var drawables = []
@@ -100,7 +102,7 @@
       var midpoint = {x: halfx, y: halfy}
       var winP = this.tree.nearest(midpoint, 2000, Math.max(halfx, halfy))
   
-      var mar = this.margin
+      let mar = this.margin * (p1[0] - p0[0])
       var inXRange = p => p[0].x > p0[0]-mar && p[0].x < p1[0]+mar
       var inYRange = p => p[0].y > p0[1]-mar && p[0].y < p1[1]+mar
       winP = winP.filter(p => inXRange(p) && inYRange(p))
@@ -158,6 +160,7 @@
       this.p0 = p0
       this.p1 = p1
       this.midp = [(p0[0] + p1[0])/2, (p0[1] + p1[1])/2]
+      this.interpol = 0
   
       var ww = (this.p1[0] - this.p0[0])
       this.minDist = MIN_DIST * (ww - MIN_ZOOM)
@@ -207,6 +210,7 @@
       this.topTag = this.getTopTag("genre_class")
       
       // Compute subgenre grid info for current view
+      this.prevGridView = this.landmarkGridView
       this.landmarkGridView = this.computeGenreGridView()
   
     }
@@ -363,7 +367,8 @@
       let x = 0.0; let xs = []
       let xi = 0; let xis = []
       while(x < 0.9999999){
-        if (xi+cellSize > this.p0[0] || xi < this.p1[0]){
+        if (x+cellSize > this.p0[0] && x < this.p1[0]){
+          print(true)
           xs.push(x)
           xis.push(xi)
         }
@@ -373,7 +378,7 @@
       let y = 0.0; let ys = []
       let yi = 0; let yis = []
       while(y < 0.9999999){
-        if (yi+cellSize > this.p0[1] || yi < this.p1[1]){
+        if (y+cellSize > this.p0[1] && y < this.p1[1]){
           ys.push(y)
           yis.push(yi)
         }
@@ -399,6 +404,34 @@
 
       return cells
     }
+
+
+    drawGridCells(gridView, alpha){
+      // Draw subgenre cells
+
+      if (gridView){
+        let cells = gridView
+        if (cells != null)
+          for (let cell of cells){
+            noStroke()
+            if (cell.subgenre == "")
+              continue
+            let clr = GENRE_COLORS[cell.genre]
+            fill(clr[0], clr[1], clr[2], 100 * alpha)
+            let to = this.toScreen(cell.to)
+            let from = this.toScreen(cell.from)
+            let cellW = to[0] - from[0]
+            let cellH = to[1] - from[1]
+            rect(from[0], from[1], cellW, cellH)
+            fill(0, 0, 0, 255 * alpha)
+            textAlign(CENTER)
+            text(cell.subgenre, from[0] + cellW/2, from[1] + cellH/2)
+            textAlign(LEFT)
+          }
+      }
+
+    }
+
   
     draw(){
       // Draw the map at every time step
@@ -409,6 +442,9 @@
         var p1Delta = [this.p1[0] - this.p1Lazy[0], this.p1[1] - this.p1Lazy[1]]
         this.p0Lazy = [this.p0Lazy[0] + TR_RATIO*p0Delta[0], this.p0Lazy[1] + TR_RATIO*p0Delta[1]]
         this.p1Lazy = [this.p1Lazy[0] + TR_RATIO*p1Delta[0], this.p1Lazy[1] + TR_RATIO*p1Delta[1]]
+
+        this.interpol += (1 - this.interpol)*TR_RATIO
+
         if (Math.abs(p0Delta[0]) < TR_THR && Math.abs(p0Delta[1]) < TR_THR){
           this.p0Lazy = this.p0
           this.p1Lazy = this.p1
@@ -425,32 +461,17 @@
       var h = p1[1] - p0[1]
       var wLazy = p1Lazy[0] - p0Lazy[0]
       var hLazy= p1Lazy[1] - p0Lazy[1]
-      var margin = this.toScreen([this.margin, this.margin])[0] //HACK
+
+      let margin = w * this.margin
+      //var margin = this.toScreen([mar, mar])[0] //HACK
   
       var mouseP = this.toGlobal([mouseX, mouseY])
       var hoverIdx = this.findPoint(mouseP)
 
-      // Subgenre grid cells
-      if (this.landmarkGridView){
-        let cells = this.landmarkGridView
-        if (cells != null)
-          for (let cell of cells){
-            noStroke()
-            if (cell.subgenre == "")
-              continue
-            let clr = GENRE_COLORS[cell.genre]
-            fill(clr[0], clr[1], clr[2], 100)
-            let to = this.toScreen(cell.to)
-            let from = this.toScreen(cell.from)
-            let cellW = to[0] - from[0]
-            let cellH = to[1] - from[1]
-            rect(from[0], from[1], cellW, cellH)
-            fill(0, 0, 0)
-            textAlign(CENTER)
-            text(cell.subgenre, from[0] + cellW/2, from[1] + cellH/2)
-            textAlign(LEFT)
-          }
-      }
+      // Subgenre grid cells (fading from prev. view)
+      this.drawGridCells(this.prevGridView, 1 - this.interpol)
+      this.drawGridCells(this.landmarkGridView, this.interpol)
+
   
       // Window center and borders
       strokeWeight(1)

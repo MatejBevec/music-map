@@ -9,7 +9,8 @@ const MOVE_AMOUNT = 0.2
 const ZOOM_AMOUNT = 0.2
 const WINW = 0.1
 const WINH = 0.1
-const MARGIN = 0.05
+//const MARGIN = 0.05
+const MARGIN = 0.25
 const TRANSITION = 1 // tr. time in seconds
 const TR_RATIO = 0.1
 const TR_THR = 0.0001
@@ -19,7 +20,7 @@ const ADAPT_MIN_DIST = true
 const SCALE_COLLAPSED = true
 
 const MIN_ZOOM = 0.01
-const MAX_ZOOM = 0.4
+const MAX_ZOOM = 0.5
 
 const WALK_STROKE = 2
 const IMG_SEL_PAD = 8
