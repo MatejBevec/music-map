@@ -2,6 +2,9 @@
 // ------------------ CLASSES ------------------ 
 
 class DrawablePoint {
+    /**
+     Represents a song "node" displayed on the map.
+     */
 
     constructor(map, idx, id, info, imgPath, clipPath){
       this.map = map
@@ -87,6 +90,14 @@ class DrawablePoint {
         // if (this.map.selected == this.idx)
         //   ellipse(pos[0], pos[1], DOT_SEL_PAD, DOT_SEL_PAD)
       }
+
+
+      fill(r,g,b,50)
+      for(let i = 0; i < 5; i++){
+        let rad = (i/5)**2
+        ellipse(pos[0],pos[1], rad*300);
+      }
+
   
   
     }
@@ -94,13 +105,15 @@ class DrawablePoint {
   }
   
   class Walk {
+    /**
+      Represents a playlist, i.e. a sequence of songs on the map.
+     */
   
     constructor(map, indices){
       this.map = map
       this.indices = indices
       this.i = 0
-      // BODGE
-      this.playerEl = document.getElementById("embed-iframe")
+      this.playerEl = document.getElementById("embed-iframe")      // BODGE
     }
   
     draw() {
@@ -195,36 +208,27 @@ class DrawablePoint {
   
   
   class MusicMap {
-    // Holds all data (points) and logic
+    /**
+      Singleton representing the entire music map.
+      Holds all data (points and metadata) and logic.
+     */
   
-    constructor(){      
+    constructor(){   
+      // Construction is done in the "build" async method   
     }
   
     static async build(embeddings, projectedPath, dgramPath, landmarksPath, metadata, imgDir){
+      // Creates and populates map instance async.
       
       if (typeof embeddings === 'string' || embeddings instanceof String){
         embeddings = await fetchJson(embeddings)
       }
   
-      // TODO: server-side precompute and save
-  
-      // this.projPath = projectedPath
-      // var res = await fetch(this.projPath)
-  
-      // if (!res.ok){
-      //   newProj = computeTSNE(this.emb)
-      //   str = JSON.stringify(newProj)
-      // }
-      // this.proj = await res.json()
-  
-      // var projections = computeTSNE(embeddings)
-  
-      // TEMP: Load precomputed TSNE projections
+      // Load precomputed TSNE projections
       var projections = await fetchJson(projectedPath)
-
-  
   
       // Init colors (for demonstration)
+      // TODO: CLEAN THIS UP!!!
       var colors = []
       for (var i = 0; i < projections.length; i++){
         var r = Math.trunc(projections[i][0]*255)
@@ -241,7 +245,7 @@ class DrawablePoint {
       }
       var tree = new kdTree(kdPts.slice(), euclDistSquared, ["x", "y"])
   
-      // Construct hierarchical dendrogram (for min. dist. collapsing)
+      // Construct hierarchical dendrogram (for coalescing zoom)
       var dgram = await computeDendrogramLoad(projections, dgramPath)
 
       // Load subgenre grid pyramid
@@ -249,7 +253,7 @@ class DrawablePoint {
       [landmarkSizes, landmarkGrid] = await fetchJson(landmarksPath)
 
   
-      // Create and the MusicMap object
+      // Create and populate the MusicMap object
       var map = new MusicMap()
 
       map.emb = embeddings
@@ -274,10 +278,7 @@ class DrawablePoint {
       map.landmarkSizes = landmarkSizes
       map.landmarkGridView = null
 
-      console.log(map.landmarkGrid)
-
-
-      //OR SHOULD WE INSTANTIATE POINTS ON WINDOW CHANGE?
+      // Create instances for displayed song nodes
       var drawables = []
       for (i = 0; i < projections.length; i++){
         var id = metadata.ids[i]
@@ -288,9 +289,8 @@ class DrawablePoint {
         drawables.push(drawable)
       }
       map.drawables = drawables
-  
-      map.p0 = 0.5
-      map.p1 = 0.5
+      
+      // Init view
       map.moveDone = true
       map.changeWindow([0.5-WINW/2, 0.5-WINH/2], [0.5+WINW/2, 0.5+WINH/2])
       map.moveWindow([0.5, 0.5])
@@ -348,7 +348,7 @@ class DrawablePoint {
     }
   
     changeWindow(p0, p1){
-      // Called when viewing window changes (zoom or move)
+      // Called when viewed window changes (zoom or move)
 
       if (p0.includes(NaN) || p1.includes(NaN))
         return
@@ -369,16 +369,18 @@ class DrawablePoint {
       this.minDist = MIN_DIST * (ww - MIN_ZOOM)
       
       this.winIdxAll = this.pointsInWindow(p0, p1)
-  
+      
+      // Get coalesced points
       var ret = this.collapsePoints(this.winIdxAll, this.minDist)
       this.winIdx = ret[0]
       this.winSizes = ret[1]
       this.winIdxSet = new Set(this.winIdx)
-  
+      
+      // Find points to load and unload compared to prev. view
       var loadIdxSet = [...this.winIdxSet].filter(el => !oldIdxSet.has(el))
       var unloadIdxSet = [...oldIdxSet].filter(el => !this.winIdxSet.has(el))
   
-      // load new images in batches
+      // Load new images in batches
       if (USE_IMG){
 
         for (var i of unloadIdxSet)
@@ -407,24 +409,27 @@ class DrawablePoint {
       }
 
 
-      // change current top genre tag
+      // Change current top genre tag
       this.topTag = this.getTopTag("genre_class")
       
-      // compute subgenre grid info for current view
+      // Compute subgenre grid info for current view
       this.landmarkGridView = this.computeGenreGridView()
   
     }
 
     resetWindow(){
+      // Force view refresh without changing it
+
       this.winIdx = []
       this.changeWindow(this.p0, this.p1)
     }
   
     moveWindow(midp, delta){
+      // Move wiew to specific point or by a delta
+
       if (midp == null)
         midp = [this.midp[0] + delta[0], this.midp[1] + delta[1]]
   
-      // PRECOMPUTE THIS SOMEWHERE TO OPTIMIZE
       var ww = (this.p1[0] - this.p0[0])/2
       var wh = (this.p1[1] - this.p0[1])/2
   
@@ -434,11 +439,12 @@ class DrawablePoint {
     }
   
     zoomWindow(amount){
+      // Change view size
+
       var halfw = (this.p1Lazy[0] - this.p0Lazy[0])/2 * (1+amount)
       var halfh = (this.p1Lazy[1] - this.p0Lazy[1])/2 * (1+amount)
       var ratio = halfh/halfw
       
-      // OCCASIONAL BUG HERE!
       if (halfw < MIN_ZOOM){
         halfw = MIN_ZOOM
         halfh = ratio*halfw
@@ -454,6 +460,8 @@ class DrawablePoint {
     }
   
     findPoint(point, k){
+      // Find k nearest songs to given location ("point") in projected space
+
       var pt = this.tree.nearest({x: point[0], y: point[1]}, 100)
       var sorted = pt.sort((a, b) => a[1] - b[1])
       var indices = sorted.map(p => parseInt(p[0].i))
@@ -464,15 +472,17 @@ class DrawablePoint {
     }
 
     selectPoint(idx){
+      // Select song (for playing) by index
+
       var p = this.proj[idx]
       this.moveWindow(p, null)
-      //this.drawables[idx].playClip()
       this.selected = idx
       embedController.loadUri("spotify:track:" + this.meta.ids[idx])
     }
   
     getLabel(idx){
-      //console.log("called")
+      // Get title - artist tag for song by index
+
       if (idx){
         var id = this.meta.ids[idx]
         var label = []
@@ -484,6 +494,9 @@ class DrawablePoint {
     }
 
     getTopTag(attr){
+      // Get most prevalent genre in current view window
+      // TODO: change this
+
       let tags = []
       let info = this.meta.info
       let ids = this.meta.ids
@@ -494,12 +507,11 @@ class DrawablePoint {
           tags.push(info[ids[i]][attr])
       }
       counts = getArrayCounts(tags)
-      //console.log(counts)
       return Object.keys(counts)[0]
     }
   
     toScreen(point){
-      // Global (0, 1) coords to screen coords
+      // Global [0, 1] coords to screen coords
   
       if (DEBUG_MODE){
         var x = point[0] * width
@@ -515,7 +527,7 @@ class DrawablePoint {
     }
   
     toGlobal(point){
-      // Screen coords to global (0, 1) coords
+      // Screen coords to global [0, 1] coords
   
       if (DEBUG_MODE){
         var x = point[0] / width
@@ -532,34 +544,27 @@ class DrawablePoint {
 
     computeGenreGridView(){
       // Compute current view of the subgenre grid
+      // TODO: consider precomputing
 
       let zoom = this.p1[0] - this.p0[0]
       if (zoom > GENRE_GRID_LEVELS[0])
         return null
 
-      // CLEAN THIS UP
-      print(zoom, GENRE_GRID_LEVELS)
+      // Determine appropriate detail level
+      // TODO: clean this up
       let i
       for (i = 0; i < GENRE_GRID_LEVELS.length; i++)
         if (zoom > GENRE_GRID_LEVELS[i]){
-          //i -= 1
-          print("exiting at: ", i)
           break
         }
       i -= 1
-      print(i)
-      //cellSize = GENRE_GRID_LEVELS[i]
-      //console.log(i)
       let cellSize = this.landmarkSizes[i]
-      //console.log(this.landmarkGrid)
-      //console.log(this.landmarkGrid[i])
       let subGrid = this.landmarkGrid[i][0]
       let topGrid = this.landmarkGrid[i][1]
-
       
-
       // Compute visible cell borders in x and y
       // and which global cell indices (xi, yi) they correspond to
+      // BUG: all cells are displayed
       let x = 0.0; let xs = []
       let xi = 0; let xis = []
       while(x < 0.9999999){
@@ -584,13 +589,11 @@ class DrawablePoint {
       print(cellSize, subGrid.length, xis.length)
       let cells = []
 
-      //console.log(xs.length, s.length, cellSize, i, xis, yis)
       // Populate visible cells with subgenre info
       for (let a = 0; a < xs.length; a++){
         for (let b = 0; b < ys.length; b++){
           let fr = [xs[a], ys[b]]
           let to = [fr[0]+cellSize, fr[1]+cellSize]
-          //console.log(a, b, xis[a], yis[b])
           let subgenre = subGrid[xis[a]][yis[b]]
           let genre = topGrid[xis[a]][yis[b]]
           let cell = {from: fr, to: to, 
@@ -599,14 +602,13 @@ class DrawablePoint {
         }
       }
 
-      //console.log(cells)
       return cells
     }
   
     draw(){
-      // Draw points every step
+      // Draw the map at every time step
   
-      // Interpolate to new point
+      // Interpolate to new view
       if (!this.moveDone){
         var p0Delta = [this.p0[0] - this.p0Lazy[0], this.p0[1] - this.p0Lazy[1]]
         var p1Delta = [this.p1[0] - this.p1Lazy[0], this.p1[1] - this.p1Lazy[1]]
@@ -674,7 +676,7 @@ class DrawablePoint {
       if (this.walk)
         this.walk.draw()
   
-      // Points
+      // Points (songs)
       var size = 5
       var i
       for (var wi = 0; wi < this.winIdx.length; wi++){
