@@ -161,8 +161,11 @@ if __name__ == "__main__":
     metapth = head + "/tracks.json"
     gpth = head + "/graph.json"
 
+    print("Loading embeddings ...")
     emb = load_embedding(embpth)
+    print(len(emb))
     
+    print("Loading ids ...")
     with open(gpth, "r") as f:
         g = json.load(f)
         ids = sorted(list(g["tracks"]))
@@ -182,6 +185,7 @@ if __name__ == "__main__":
 
     proj_tsne = compute_tsne(emb)
     proj_umap = compute_umap(emb)
+    print(len(pro))
     #proj_lda = compute_lda(emb, genres)
 
     show_plot(proj_tsne, genres, "t-SNE", metadata=metadata)

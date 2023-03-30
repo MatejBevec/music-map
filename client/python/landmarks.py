@@ -5,9 +5,13 @@ import json
 
 import numpy as np
 import sklearn
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.gaussian_process import GaussianProcessClassifier
 import umap
 import matplotlib.pyplot as plt
 import matplotlib
+import cv2
 
 from project import load_embedding, load_metadata, save_embedding
 from metadata import GENRES, COLORS, COLORMAP
@@ -101,6 +105,52 @@ def visualize_landmarks(landmarks, base, colormap):
     plt.show()
 
 
+def genre_distribution(pts, genres, target_genre, cellsize=0.01, algo="svm"):
+    
+    pts = np.array(pts)
+    y = np.array(genres) == target_genre
+    n = int(1/cellsize)
+    if len(np.unique(y)) < 2:
+        return np.zeros((n, n))
+    print(y)
+
+    
+    if algo == "svm":
+        model = SVC(C=1.0, kernel="rbf", probability=True)
+    elif algo == "knn":
+        model = KNeighborsClassifier(n_neighbors=500)
+    else:
+        model = GaussianProcessClassifier()
+    model.fit(pts, y)
+
+    pointlist = []
+    for y in np.arange(0, 1, cellsize):
+        for x in np.arange(0, 1, cellsize):
+            pointlist.append([y, x])
+
+    prob = model.predict_proba(np.array(pointlist))[:, 1]
+    print(prob)
+
+    distr = np.ndarray((n, n))
+    for row in range(n):
+        for col in range(n):
+            distr[row, col] = prob[row*n + col]
+
+    return distr
+
+
+def genre_distribution_all(pts, genres, target_genres, cellsize=0.01, algo="svm"):
+
+    distrs = {}
+    for target in target_genres:
+        print(target)
+        distr = genre_distribution(pts, genres, target, cellsize=cellsize, algo=algo)
+        distr = cv2.resize(distr, (1000, 1000), interpolation=cv2.INTER_LINEAR)
+        distr = cv2.GaussianBlur(distr, [0, 0], sigmaX=20, sigmaY=20)
+        distrs[target] = distr.tolist()
+
+    return distrs
+
 
 if __name__ == "__main__":
 
@@ -116,22 +166,46 @@ if __name__ == "__main__":
     # print(colormap)
 
     colormap = COLORMAP
-    
     ids, titles, artists, genres, subgenres = load_metadata(head)
 
 
+    if sys.argv[2] == "distr":
 
-    landmarks, base = compute_landmarks(subgenres, genres, pts, cellsize=0.02)
+        # distr = genre_distribution(pts, genres, "jazz")
+        # distr = cv2.resize(distr, (1000, 1000), interpolation=cv2.INTER_LINEAR)
+        # distr = cv2.GaussianBlur(distr, [0, 0], sigmaX=10, sigmaY=10)
+        # plt.imshow(distr)
+        # plt.show()
+        
+        distrs = genre_distribution_all(pts, genres, GENRES, algo="knn")
+        print("done")
 
-    print(colormap)
-    visualize_landmarks(landmarks, base, colormap)
+        n = len(distrs)
+        for i in range(n):
+            row = int(i/2)
+            col = i % 2
+            plt.subplot(2, int(n/2)+1, i+1)
+            plt.imshow(distrs[GENRES[i]])
+            plt.axis("off")
+            plt.title(GENRES[i])
+        plt.show()
 
-    landmark_pyramid = []
+        save_embedding(distrs, head + "/distrs.json")
 
 
-    sizes = [0.05, 0.025, 0.0125]
-    for size in sizes:
-        landmarks, base = compute_landmarks(subgenres, genres, pts, cellsize=size)
-        landmark_pyramid.append( [landmarks.tolist(), base.tolist()] )
-    
-    save_embedding([sizes, landmark_pyramid], head + "/landmarks.json")
+
+    elif sys.argv[2] == "landmarks":
+
+        landmarks, base = compute_landmarks(subgenres, genres, pts, cellsize=0.02)
+
+        print(colormap)
+        visualize_landmarks(landmarks, base, colormap)
+
+        landmark_pyramid = []
+
+        sizes = [0.05, 0.025, 0.0125]
+        for size in sizes:
+            landmarks, base = compute_landmarks(subgenres, genres, pts, cellsize=size)
+            landmark_pyramid.append( [landmarks.tolist(), base.tolist()] )
+        
+        save_embedding([sizes, landmark_pyramid], head + "/landmarks.json")
