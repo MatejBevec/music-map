@@ -26,6 +26,11 @@ const WALK_STROKE = 2
 const IMG_SEL_PAD = 8
 const DOT_SEL_PAD = 16
 
+const HOVER_DIST = 0.03
+const WALK_DENSITY = 10 //global for all walks (of life)
+const JOURNEY_DENSITY = 0.12 //modifier for from-to walk
+const RELATIVE_JOURNEY_DENSITY = false // if true, number of nodes is constant to view (doesnt depend on global walk length)
+
 const USE_GENRE_COLORS = true
 const GENRE_COLORS = {
   "classical": [187, 235, 255],
@@ -66,6 +71,7 @@ var prevDiff = -1;
 
 // HELPER FUNCTIONS
 
+const euclDist = (a, b) => Math.sqrt(Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2))
 var euclDistSquared = (a, b) => Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2)
 var euclDistSquaredArr = (a, b) => Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2)
 

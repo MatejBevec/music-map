@@ -73,6 +73,11 @@
       map.landmarkGridView = null
       map.prevGridView = null
       map.interpol = 1
+      map.hovered = null
+      map.hoveredDist = 0
+
+      //TEMP
+      map.addMode = false
 
       // Create instances for displayed song nodes
       var drawables = []
@@ -142,6 +147,48 @@
   
       return [kept, sizes]
     }
+
+    onClick(x, y){
+      // Select song or move window depending on location
+      
+      if (y < 50) return // BODGE BODGE BODGE !!!!!!
+      if (this.hoverDist < 0.03){
+        //map.selectPoint(this.hover)
+        // TEMP
+        var q = this.hover
+
+        if (this.addMode){
+          //this.walk = Walk.journey(this, this.selected, q, 8, 1)
+          this.walk = Walk.journey(this, this.selected, q, "auto", 3)
+          this.toNormalMode()
+          document.getElementById("c-delete").innerHTML = "delete" // BODGE
+        }
+        else{
+          //map.walk = Walk.giro(map, q, 11, 0.04)
+          this.walk = Walk.random(this, q, 8, 12)
+          this.walk.moveTo(0)
+          document.getElementById("c-delete").innerHTML = "delete" // BODGE
+        }
+
+      }
+      else{
+        map.moveWindow(this.toGlobal([x, y]), null)
+      }
+      
+    }
+
+    toAddMode(){
+      if (this.selected && this.walk)
+        this.addMode = true
+    }
+
+    toNormalMode(){
+      this.addMode = false
+    }
+
+    addNode(){
+
+    }
   
     changeWindow(p0, p1){
       // Called when viewed window changes (zoom or move)
@@ -151,7 +198,7 @@
   
       var oldIdxSet = new Set(this.winIdx)
   
-      console.log("change window to", p0, p1)
+      //console.log("change window to", p0, p1)
   
       this.p0Lazy = this.p0
       this.p1Lazy = this.p1
@@ -163,7 +210,8 @@
       this.interpol = 0
   
       var ww = (this.p1[0] - this.p0[0])
-      this.minDist = MIN_DIST * (ww - MIN_ZOOM)
+      this.windowW = (this.p1[0] - this.p0[0])
+      this.minDist = MIN_DIST * (this.windowW - MIN_ZOOM)
       
       this.winIdxAll = this.pointsInWindow(p0, p1)
       
@@ -259,6 +307,8 @@
   
     findPoint(point, k){
       // Find k nearest songs to given location ("point") in projected space
+
+      // TODO: should return k points not just kth point
 
       var pt = this.tree.nearest({x: point[0], y: point[1]}, 100)
       var sorted = pt.sort((a, b) => a[1] - b[1])
@@ -363,12 +413,10 @@
       
       // Compute visible cell borders in x and y
       // and which global cell indices (xi, yi) they correspond to
-      // BUG: all cells are displayed
       let x = 0.0; let xs = []
       let xi = 0; let xis = []
       while(x < 0.9999999){
         if (x+cellSize > this.p0[0] && x < this.p1[0]){
-          print(true)
           xs.push(x)
           xis.push(xi)
         }
@@ -386,10 +434,11 @@
         yi ++
       }
 
-      print(cellSize, subGrid.length, xis.length)
-      let cells = []
+      // CONNECTED COMPONENTS
+      // todo
 
       // Populate visible cells with subgenre info
+      let cells = []
       for (let a = 0; a < xs.length; a++){
         for (let b = 0; b < ys.length; b++){
           let fr = [xs[a], ys[b]]
@@ -461,12 +510,16 @@
       var h = p1[1] - p0[1]
       var wLazy = p1Lazy[0] - p0Lazy[0]
       var hLazy= p1Lazy[1] - p0Lazy[1]
-
       let margin = w * this.margin
       //var margin = this.toScreen([mar, mar])[0] //HACK
-  
+
+      // Find hovered point
       var mouseP = this.toGlobal([mouseX, mouseY])
       var hoverIdx = this.findPoint(mouseP)
+      let hoverPt = this.proj[hoverIdx]
+      let dist = euclDist(mouseP, hoverPt) / this.windowW //BODGE
+      this.hover = hoverIdx
+      this.hoverDist = dist
 
       // Subgenre grid cells (fading from prev. view)
       this.drawGridCells(this.prevGridView, 1 - this.interpol)
@@ -515,19 +568,23 @@
         var hoverP = this.toScreen(this.proj[hoverIdx])
         let l = hoverP[0] + IMG_SIZE/2 + 10
 
-        textStyle(BOLD)
-        textSize(8)
-        let awidth = textWidth(label[1])
-        textStyle(NORMAL)
-        textSize(10)
-        let nwidth = textWidth(label[0])
-        fill(255, 255, 255)
-        rect(l-5, hoverP[1] - 10, Math.max(awidth, nwidth) + 10, 24)
-        fill(0, 0, 0)
-        text(label[0], l, hoverP[1] + 9)
-        textStyle(BOLD)
-        textSize(8)
-        text(label[1], l, hoverP[1] - 1)
+        cursor("default")
+        if (this.hoverDist < HOVER_DIST){
+          cursor("pointer")
+          textStyle(BOLD)
+          textSize(8)
+          let awidth = textWidth(label[1])
+          textStyle(NORMAL)
+          textSize(10)
+          let nwidth = textWidth(label[0])
+          fill(255, 255, 255)
+          rect(l-5, hoverP[1] - 10, Math.max(awidth, nwidth) + 10, 24)
+          fill(0, 0, 0)
+          text(label[0], l, hoverP[1] + 9)
+          textStyle(BOLD)
+          textSize(8)
+          text(label[1], l, hoverP[1] - 1)
+        }
 
       }
 

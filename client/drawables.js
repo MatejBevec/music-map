@@ -105,11 +105,12 @@ class DrawablePoint {
       Represents a playlist, i.e. a sequence of songs on the map.
      */
   
-    constructor(map, indices){
+    constructor(map, indices, showPath){
       this.map = map
       this.indices = indices
       this.i = 0
       this.playerEl = document.getElementById("embed-iframe")      // BODGE
+      this.showPath = showPath
     }
   
     draw() {
@@ -124,20 +125,25 @@ class DrawablePoint {
       var p = this.map.toScreen(this.map.proj[this.indices[0]])
 
       // Draw connecting curve
-      curveVertex(p[0], p[1])
-      for(var i of this.indices){
-        var pGlob = this.map.proj[i]
-        p = this.map.toScreen(pGlob)
+      if (this.showPath){
         curveVertex(p[0], p[1])
+        for(var i of this.indices){
+            var pGlob = this.map.proj[i]
+            p = this.map.toScreen(pGlob)
+            curveVertex(p[0], p[1])
 
-      }
-      curveVertex(p[0], p[1])
-      endShape()
+        }
+        curveVertex(p[0], p[1])
+        endShape()
+        }
 
       // Draw outlines around included songs
-      for(var i of this.indices){
-        var pGlob = this.map.proj[i]
+      for(var i in this.indices){
+        let index = this.indices[i]
+        var pGlob = this.map.proj[index]
         var p = this.map.toScreen(pGlob)
+        var alpha = this.showPath ? 200 : 200 * ((this.indices.length-i) / (this.indices.length - this.i))
+        stroke(0, 0, 0, alpha)
         noFill()
         if (USE_IMG){
           var size = IMG_SIZE + IMG_SEL_PAD
@@ -163,11 +169,29 @@ class DrawablePoint {
     }
   
     next(){
-        this.moveTo(this.i + 1)
+      this.moveTo(this.i + 1)
     }
 
     prev(){
-        this.moveTo(this.i - 1)
+      this.moveTo(this.i - 1)
+    }
+
+    whichSong(songIndex){
+      return this.indices.findIndex((el) => el == songIndex)
+    }
+
+    insertSong(songIndex, i){
+      this.indices.splice(i, 0, songIndex)
+    }
+
+    removeSong(i){
+      this.indices.splice(i, 1)
+    }
+
+    swapSongs(i, j){
+      temp = this.indices[i]
+      this.indices[i] = this.indices[j]
+      this.indices[j] = temp
     }
   
     static random(map, query, n, k){
@@ -184,7 +208,7 @@ class DrawablePoint {
       walk = [...new Set(walk)]
       for(var i of walk) console.log(i)
   
-      return new Walk(map, walk)
+      return new Walk(map, walk, false)
     }
   
     static giro(map, query, controls, dist){
@@ -195,6 +219,14 @@ class DrawablePoint {
       var q = query
       var origin = map.proj[q]
 
+      if (dist == "auto")
+        dist = map.windowW * 0.2
+      
+      if (controls == "auto"){
+        let ratio = 5*dist / map.windowW
+        controls = Math.round(ratio * WALK_DENSITY)
+      }
+
       // query should be on top of circle:
       origin = [origin[0], origin[1] + dist]
       var walk = [q]
@@ -202,30 +234,52 @@ class DrawablePoint {
         var ang = angle * i/(controls-1)
         var x = origin[0] + dist * Math.cos(ang - Math.PI/2)
         var y = origin[1] + dist * Math.sin(ang - Math.PI/2)
-        var next = map.findPoint([x, y], 1)
-        walk.push(next)
+
+        for (let j = 1; j <= 3; j++){
+          let next = map.findPoint([x, y], j)
+          if (!walk.includes(next)){
+            walk.push(next)
+            break
+          }
+        }
       }
       walk[walk.length-1] = q // !
 
-      return new Walk(map, walk)
+      return new Walk(map, walk, true)
     }
 
     static journey(map, from, to, controls, k){
         // Factory: build walk starting at one query and ending at another
-        
+
         let walk = [from]
         let fromPt = map.proj[from]
         let toPt = map.proj[to]
+
+        if (controls == "auto"){
+          let walkDist = euclDist(fromPt, toPt)
+          let modifier = RELATIVE_JOURNEY_DENSITY ? map.windowW : JOURNEY_DENSITY
+          let ratio = walkDist / modifier
+          controls = Math.round(ratio * 2 * WALK_DENSITY)
+        }
+
+        
+
         for (let i = 1; i < controls; i++){
             let x = fromPt[0] + (toPt[0] - fromPt[0]) * (i/controls)
             let y = fromPt[1] + (toPt[1] - fromPt[1]) * (i/controls)
-            let pick = Math.trunc(Math.random() * k) + 1
-            let next = map.findPoint([x, y], pick)
-            walk.push(next)
+
+            for (let j = 1; j <= 5; j++){
+              let pick = Math.trunc(Math.random() * k) + 1
+              let next = map.findPoint([x, y], pick)
+              if (!walk.includes(next)){
+                walk.push(next)
+                break
+              }
+            }
         }
         walk.push(to)
 
-        return new Walk(map, walk)
+        return new Walk(map, walk, true)
     }
   
   }

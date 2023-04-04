@@ -86,11 +86,9 @@ async function draw() {
 
 
 function mouseClicked() {
-  // BODGE BODGE BODGE !!!!!!
-  if (mouseY < 80) return
-  var p = map.toGlobal([mouseX, mouseY])
-  var w = map.windowW
-  map.moveWindow(p, null)
+  
+  map.onClick(mouseX, mouseY)
+
 }
 
 function touchStarted() {
@@ -135,12 +133,17 @@ function keyPressed(ev) {
   }
   if (key == "a")
     walkMake()
-  if (key == "d")
+  if (key == "d" || keyCode == ESCAPE)
     walkDelete()
   if(key == "x")
     walkNext()
   if(key == "y")
     walkPrev()
+  if(key == "c")
+    if(map.addMode)
+      map.toNormalMode()
+    else
+      map.toAddMode()
 }
 
 
@@ -238,8 +241,8 @@ function walkDelete(){
 
 function walkMake(){
   var q = map.findPoint(map.midp)
-  //map.walk = Walk.giro(map, q, 11, 0.04)
-  map.walk = Walk.journey(map, Math.trunc(Math.random() * 5000) + 1, Math.trunc(Math.random() * 5000) + 1, 12, 1)
+  //map.walk = Walk.giro(map, q, 11, 0.02)
+  map.walk = Walk.giro(map, q, "auto", "auto")
   map.walk.moveTo(0)
   document.getElementById("c-delete").innerHTML = "delete" // BODGE
 }
