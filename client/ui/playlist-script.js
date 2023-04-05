@@ -4,10 +4,17 @@
     template: `
     <div>
         <div
-        class="guibtn topbtn"
+        :class="{'guibtn': true, 'topbtn': true, 'disabled': this.addMode}"
         @click="onClickJourney"
         >
           {{this.addMode ? "pick destination..." : "journey ↝"}}
+        </div>
+
+        <div
+        :class="{'guibtn': true, 'topbtn': true}"
+        @click="onClickGiro"
+        >
+          {{"giro ↻"}}
         </div>
     <ul>
         <li
@@ -21,7 +28,10 @@
         @dragend="dragEnd"
         @click="onClick(index)"
         >
-        <p>{{ item.artist }}</p> \n
+        <p>
+          <span :style="{color: item.color}">●</span> 
+          {{ item.artist }}
+        </p>
         <p>{{ item.title }}</p>
         </li>
     </ul>
@@ -42,11 +52,16 @@
               this.selected = ind
               sel = true
             }
-            this.items.push({id: i, title: info[0], artist: info[1], selected: sel, songInd: ind})
+            let c = getGenreColor(map, ind)
+            let cssColor = `rgb(${c[0]},${c[1]},${c[2]})`
+            console.log(cssColor)
+            this.items.push({id: i, title: info[0], artist: info[1],
+              selected: sel, songInd: ind, color: cssColor})
           }
           console.log(this.items)
         }
         this.addMode = map.addMode
+
       })
 
 
@@ -94,6 +109,10 @@
       
       onClickJourney(){
         map.toggleAddMode()
+      },
+
+      onClickGiro(){ 
+        map.makeWalkGiro()
       },
 
     },

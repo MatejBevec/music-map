@@ -265,3 +265,13 @@ function setIntersection(a, b){
   let intersection = new Set([...a].filter(x => b.has(x)));
   return intersection
 }
+
+function getGenreColor(map, idx){
+  let id = map.meta.ids[idx] 
+  let genre = map.meta.info[id]["genre_class"]
+  if (genre != null){
+    let color = GENRE_COLORS[genre]
+    return color
+  }
+  else return [0, 0, 0]
+}

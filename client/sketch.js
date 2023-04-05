@@ -264,10 +264,5 @@ function walkDelete(){
 }
 
 function walkMake(){
-  var q = map.findPoint(map.midp)
-  //map.walk = Walk.giro(map, q, 11, 0.02)
-  map.walk = Walk.giro(map, q, "auto", "auto")
-  map.walk.moveTo(0)
-  document.getElementById("c-delete").innerHTML = "delete" // BODGE
-  vueEventBus.$emit("walk-changed") 
+  map.makeWalkGiro()
 }

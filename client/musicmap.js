@@ -662,7 +662,8 @@
 
         cursor("default")
         if (this.hoverDist < HOVER_DIST){
-          cursor("pointer")
+          let cr = this.addMode ? "crosshair" : "pointer"
+          cursor(cr)
           this.drawLabel(label, hoverP)
         }
       }
@@ -679,6 +680,16 @@
       // Current top tag
       fill(0, 0, 0)
       text(this.topTag, 32, height-32)
+    }
+
+
+    makeWalkGiro(){
+      var q = this.findPoint(this.midp)
+      //this.walk = Walk.giro(this, q, 11, 0.02)
+      this.walk = Walk.giro(this, q, "auto", "auto")
+      this.walk.moveTo(0)
+      document.getElementById("c-delete").innerHTML = "delete" // BODGE
+      vueEventBus.$emit("walk-changed") 
     }
   
   }
