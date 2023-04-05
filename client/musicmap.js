@@ -105,7 +105,7 @@
       var halfx = (p0[0] + p1[0])/2
       var halfy = (p0[1] + p1[1])/2
       var midpoint = {x: halfx, y: halfy}
-      var winP = this.tree.nearest(midpoint, 2000, Math.max(halfx, halfy))
+      var winP = this.tree.nearest(midpoint, 5500, Math.max(halfx, halfy))
   
       let mar = this.margin * (p1[0] - p0[0])
       var inXRange = p => p[0].x > p0[0]-mar && p[0].x < p1[0]+mar
@@ -141,11 +141,21 @@
           i = parent
         }
       }
-      
-      var kept = Array.from(kept)
-      var sizes = kept.map(i => this.dgram[clusters[i]].size)
-  
-      return [kept, sizes]
+
+      var keptAr = Array.from(kept)
+      var sizes = keptAr.map(i => this.dgram[clusters[i]].size)
+    
+      // Always display playlist songs
+      // Idk... a design decision
+      if (this.walk){
+        let newFromWalk = [...this.walk.indices].filter(x => !kept.has(x))
+        for (let ind of newFromWalk){
+          keptAr.push(ind)
+          sizes.push(1)
+        }
+      }
+        
+      return [keptAr, sizes]
     }
 
     onClick(x, y){
@@ -159,6 +169,7 @@
         if (this.addMode){
           //this.walk = Walk.journey(this, this.selected, q, 8, 1)
           this.walk = Walk.journey(this, this.selected, q, "auto", 3)
+          vueEventBus.$emit("walk-changed")
           this.toNormalMode()
           document.getElementById("c-delete").innerHTML = "delete" // BODGE
         }
@@ -166,6 +177,7 @@
           //map.walk = Walk.giro(map, q, 11, 0.04)
           this.walk = Walk.random(this, q, 8, 12)
           this.walk.moveTo(0)
+          vueEventBus.$emit("walk-changed")
           document.getElementById("c-delete").innerHTML = "delete" // BODGE
         }
 
@@ -177,12 +189,21 @@
     }
 
     toAddMode(){
-      if (this.selected && this.walk)
+      if (this.selected && this.walk){
         this.addMode = true
+        vueEventBus.$emit("walk-changed")
+      }
     }
 
     toNormalMode(){
       this.addMode = false
+      vueEventBus.$emit("walk-changed")
+    }
+
+    toggleAddMode(){
+      if (this.addMode)
+        this.toNormalMode()
+      else this.toAddMode()
     }
 
     addNode(){
@@ -210,6 +231,7 @@
   
       var ww = (this.p1[0] - this.p0[0])
       this.windowW = (this.p1[0] - this.p0[0])
+      console.log(this.windowW)
       this.minDist = MIN_DIST * (this.windowW - MIN_ZOOM)
       
       this.winIdxAll = this.pointsInWindow(p0, p1)
@@ -454,6 +476,27 @@
     }
 
 
+    drawLabel(label, location){
+      let hoverP = location
+      let l = hoverP[0] + IMG_SIZE/2 + 10
+
+      textStyle(BOLD)
+      textSize(8)
+      let awidth = textWidth(label[1])
+      textStyle(NORMAL)
+      textSize(10)
+      let nwidth = textWidth(label[0])
+      fill(255, 255, 255)
+      rect(l-5, hoverP[1] - 10, Math.max(awidth, nwidth) + 10, 24)
+      fill(0, 0, 0)
+      text(label[0], l, hoverP[1] + 9)
+      textStyle(BOLD)
+      textSize(8)
+      text(label[1], l, hoverP[1] - 1)
+
+    }
+
+
     drawGridCells(gridView, alpha){
       // Draw subgenre cells
 
@@ -465,16 +508,63 @@
             if (cell.subgenre == "")
               continue
             let clr = GENRE_COLORS[cell.genre]
-            fill(clr[0], clr[1], clr[2], 100 * alpha)
             let to = this.toScreen(cell.to)
             let from = this.toScreen(cell.from)
             let cellW = to[0] - from[0]
             let cellH = to[1] - from[1]
-            rect(from[0], from[1], cellW, cellH)
+            
+            // OPTION 1
+            // drawingContext.shadowBlur = 12
+            // drawingContext.shadowColor = color(clr[0], clr[1], clr[2], 255 * alpha)
+            // let b = 5
+            // noFill()
+            // stroke(clr[0], clr[1], clr[2], 200 * alpha)
+            // strokeWeight(b)
+            // rect(from[0]+b, from[1]+b, cellW-b, cellH-b)
+            // drawingContext.shadowBlur = 0
+            // drawingContext.shadowColor = null
+            // noStroke()
+
+            // OPTION 2
+            // noFill()
+            // let b = 16
+            // stroke(clr[0], clr[1], clr[2], 50 * alpha)
+            // strokeWeight(b)
+            // rect(from[0]+b/2, from[1]+b/2, cellW, cellH)
+            // b = 6
+            // strokeWeight(b)
+            // rect(from[0]+b/2, from[1]+b/2, cellW, cellH)
+            // b = 1
+            // strokeWeight(b)
+            // rect(from[0]+b, from[1]+b, cellW, cellH)
+            //noStroke()
+
+            // OPTION 3
+            noFill()
+            let b = 16
+            stroke(clr[0], clr[1], clr[2], 40 * alpha)
+            strokeWeight(b)
+            rect(from[0]+b/2, from[1]+b/2, cellW-b, cellH-b)
+            b = 6
+            strokeWeight(b)
+            rect(from[0]+b/2, from[1]+b/2, cellW-b, cellH-b)
+            b = 2
+            strokeWeight(b)
+            rect(from[0]+b/2, from[1]+b/2, cellW-b, cellH-b)
+
+            
+            //stroke(clr[0], clr[1], clr[2], 200 * alpha)
+            //strokeWeight(3)
+            //fill(255, 255, 255, 255 * alpha)
+
             fill(0, 0, 0, 255 * alpha)
+
             textAlign(CENTER)
+            textStyle(NORMAL)
+            textSize(11)
             text(cell.subgenre, from[0] + cellW/2, from[1] + cellH/2)
             textAlign(LEFT)
+            textStyle(NORMAL)
           }
       }
 
@@ -559,32 +649,22 @@
         if (SCALE_COLLAPSED) size = Math.sqrt(this.winSizes[wi]) * 5
         // TODO
         this.drawables[i].draw(p, size)
+        if (this.windowW < LABELS_ZOOM){
+          var label = this.getLabel(i)
+          this.drawLabel(label, p)
+        }
       }
   
       // Label
       if (hoverIdx){
         var label = this.getLabel(hoverIdx)
         var hoverP = this.toScreen(this.proj[hoverIdx])
-        let l = hoverP[0] + IMG_SIZE/2 + 10
 
         cursor("default")
         if (this.hoverDist < HOVER_DIST){
           cursor("pointer")
-          textStyle(BOLD)
-          textSize(8)
-          let awidth = textWidth(label[1])
-          textStyle(NORMAL)
-          textSize(10)
-          let nwidth = textWidth(label[0])
-          fill(255, 255, 255)
-          rect(l-5, hoverP[1] - 10, Math.max(awidth, nwidth) + 10, 24)
-          fill(0, 0, 0)
-          text(label[0], l, hoverP[1] + 9)
-          textStyle(BOLD)
-          textSize(8)
-          text(label[1], l, hoverP[1] - 1)
+          this.drawLabel(label, hoverP)
         }
-
       }
 
       // Selected

@@ -170,6 +170,12 @@ var wheelAmount = 0
 var timeoutId = 0
 
 function mouseWheel(ev) {
+
+  let el = ev.target
+  if (!(el.id == "canvas" || el.closest("canvas") !== null)){
+    return
+  }
+
   wheelAmount += ev.delta/150
   clearTimeout(timeoutId)
 
@@ -254,6 +260,7 @@ function walkPrev(){
 function walkDelete(){
   map.walk = null
   document.getElementById("c-delete").innerHTML = "create" // BODGE
+  vueEventBus.$emit("walk-changed") // BODGE
 }
 
 function walkMake(){
@@ -262,4 +269,5 @@ function walkMake(){
   map.walk = Walk.giro(map, q, "auto", "auto")
   map.walk.moveTo(0)
   document.getElementById("c-delete").innerHTML = "delete" // BODGE
+  vueEventBus.$emit("walk-changed") 
 }

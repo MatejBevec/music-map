@@ -111,6 +111,8 @@ class DrawablePoint {
       this.i = 0
       this.playerEl = document.getElementById("embed-iframe")      // BODGE
       this.showPath = showPath
+
+      //BODGE, this should definitely not be here
     }
   
     draw() {
@@ -126,6 +128,7 @@ class DrawablePoint {
 
       // Draw connecting curve
       if (this.showPath){
+        stroke(0, 0, 0, alpha)
         curveVertex(p[0], p[1])
         for(var i of this.indices){
             var pGlob = this.map.proj[i]
@@ -144,7 +147,8 @@ class DrawablePoint {
         var p = this.map.toScreen(pGlob)
         var alpha = this.showPath ? 200 : 200 * ((this.indices.length-i) / (this.indices.length - this.i))
         stroke(0, 0, 0, alpha)
-        noFill()
+        //noFill()
+        fill(255, 255, 255)
         if (USE_IMG){
           var size = IMG_SIZE + IMG_SEL_PAD
           rect(p[0]-size/2, p[1]-size/2, size, size)
@@ -167,13 +171,20 @@ class DrawablePoint {
       // this.map.drawables[this.indices[this.i]].playClip()
       return true     
     }
+
+    moveToInd(songIndex){
+      let i = this.whichSong(songIndex)
+      this.moveTo(i)
+    }
   
     next(){
       this.moveTo(this.i + 1)
+      vueEventBus.$emit("walk-changed")
     }
 
     prev(){
       this.moveTo(this.i - 1)
+      vueEventBus.$emit("walk-changed")
     }
 
     whichSong(songIndex){
@@ -182,16 +193,19 @@ class DrawablePoint {
 
     insertSong(songIndex, i){
       this.indices.splice(i, 0, songIndex)
+      vueEventBus.$emit("walk-changed")
     }
 
     removeSong(i){
       this.indices.splice(i, 1)
+      vueEventBus.$emit("walk-changed")
     }
 
     swapSongs(i, j){
       temp = this.indices[i]
       this.indices[i] = this.indices[j]
       this.indices[j] = temp
+      vueEventBus.$emit("walk-changed")
     }
   
     static random(map, query, n, k){

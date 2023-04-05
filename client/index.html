@@ -90,10 +90,11 @@
       flex-direction: row;
       flex-grow: 1;
       align-items: stretch;
+      max-height: calc(100vh - 30px)
     }
 
     #sidebar{
-      width: 150px;
+      width: 230px;
       padding: 0px;
       margin: 0px;
     }
@@ -125,15 +126,45 @@
     .guibtn:hover{
       background-color: #F0F0F0;
     }
+    .guibtn p{
+      padding:0;
+      margin:0;
+    }
+    .guibtn p:nth-child(1){
+      font-size:10px;
+      font-weight: bold;
+    }
+    .guibtn p:nth-child(2){
+      font-size:14px;
+      font-weight: normal;
+    }
+
+    .guibtn.selected{
+      border-width: 2;
+      border-color: black;
+    }
 
     #app{
       background-color: #FFFFFF;
+      max-height: 100%;
     }
 
+
     #app ul{
+      overflow: overlay;
+      max-height: 90vh;
       list-style-type: None;
-      padding: 0;
-      margin: 0;
+      padding: 5px;
+      margin: 5px;
+    }
+
+    #app ul::-webkit-scrollbar{
+      display: none;
+    }
+
+    #app .topbtn{
+      margin-bottom: 20px;
+      
     }
 
 
@@ -202,9 +233,11 @@
 
     <script src="ui/playlist-script.js"></script>
     <script>
+      var vueEventBus = new Vue() // BODGe BODGE BODGE
       new Vue({
         el:"#app"
       });
+      console.log(vueEventBus)
     </script>
 
 

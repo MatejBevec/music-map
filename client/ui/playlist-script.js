@@ -2,33 +2,62 @@
   Vue.component("playlist", {
     //template: "#playlist-template",
     template: `
+    <div>
+        <div
+        class="guibtn topbtn"
+        @click="onClickJourney"
+        >
+          {{this.addMode ? "pick destination..." : "journey ↝"}}
+        </div>
     <ul>
         <li
-        class="guibtn"
         v-for="(item, index) in items"
+        :class="{'guibtn': true, 'selected': item.selected}"
         :key="item.id"
         :draggable="true"
         @dragstart="dragStart(index)"
         @dragover="dragOver(index)"
         @drop="drop(index)"
         @dragend="dragEnd"
-        @click="onClick"
+        @click="onClick(index)"
         >
-        {{ item.name }}
+        <p>{{ item.artist }}</p> \n
+        <p>{{ item.title }}</p>
         </li>
     </ul>
-
+    </div>
     `,
+
+    created() {
+      // Handling communication with globals
+
+      vueEventBus.$on("walk-changed", () => {
+        this.items = []
+        if (map.walk){
+          for (let i in map.walk.indices){
+            let ind = map.walk.indices[i]
+            let info = map.getLabel(ind)
+            let sel = false
+            if (ind == map.selected){
+              this.selected = ind
+              sel = true
+            }
+            this.items.push({id: i, title: info[0], artist: info[1], selected: sel, songInd: ind})
+          }
+          console.log(this.items)
+        }
+        this.addMode = map.addMode
+      })
+
+
+    },
+
     data() {
       return {
-        items: [
-          { id: 1, name: "Item 1" },
-          { id: 2, name: "Item 2" },
-          { id: 3, name: "Item 3" },
-          { id: 4, name: "Item 4" },
-          { id: 5, name: "Item 5" },
-        ],
+        items: [],
         dragging: null,
+        selected: null,
+        addMode: false,
       };
     },
     methods: {
@@ -55,8 +84,19 @@
         console.log("dragover")
         this.dragging = null;
       },
-      onClick() {
-        console.log("hello world")
-      }
+      onClick(index) {
+        let songInd = this.items[index].songInd
+        if (map.walk){
+          map.walk.moveToInd(songInd)
+          vueEventBus.$emit("walk-changed") 
+        }
+      },
+      
+      onClickJourney(){
+        map.toggleAddMode()
+      },
+
     },
+
+
   });

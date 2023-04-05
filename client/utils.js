@@ -21,6 +21,7 @@ const SCALE_COLLAPSED = true
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 0.5
+const LABELS_ZOOM = 0.03
 
 const WALK_STROKE = 2
 const IMG_SEL_PAD = 8
@@ -258,4 +259,9 @@ function sortIndex(arr){
 
   return [sorted, sorted_index]
 
+}
+
+function setIntersection(a, b){
+  let intersection = new Set([...a].filter(x => b.has(x)));
+  return intersection
 }
