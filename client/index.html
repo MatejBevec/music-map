@@ -79,22 +79,82 @@
     }
 
 
+    #mainbody{
+      display: flex;
+      flex-direction: row;
+    }
+
+    .guibtn{
+      background-color: #FFFFFF;
+      box-shadow: 4px 4px 9px 0px #F0F0F0;
+      text-align: center;
+      font-family: sans-serif;
+      width: auto;
+      margin: 4px;
+      padding: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .guibtn:hover{
+      background-color: #F0F0F0;
+    }
+
+    #app{
+      background-color: #F0F0F0;
+    }
+
+    #app ul{
+      list-style-type: None;
+      padding: 0;
+      margin: 0;
+    }
+
+
   </style>
+
+
+
+  <!-- LOGIC -->
   <script src="utils.js"></script>
   <script src="sketch.js"></script>
   <script src="drawables.js"></script>
   <script src="musicmap.js"></script>
 
+  <!-- LIBS -->
   <script src="lib/p5.min.js"></script>
   <script src="lib/p5.sound.js"></script>
   <script src="lib/kdTree.js"></script>
   <script src="lib/tsne.min.js"></script>
   <script src="lib/batch-request.js"></script>
 
+  <!-- GUI -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <!--script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/http-vue-loader"></script-->
+  <!-- script src="playlist.vue"></script-->
+
+  <!--script src="lib/vue.js"></script-->
+  <!--script src="lib/http-vue-loader.js"></script!-->
+
+
 </head>
 
 <body>
   <main>
+
+
+
+
+
+
+
+
+    <!--div id="app">
+      <h3 style="height:300px;background-color: #F0F0F0;">Hello world</h3>
+      <playlist></playlist>
+    </div-->
+
     <div id="topbar">
       <div id="embed-iframe"></div>
       <div id="controls">
@@ -104,10 +164,39 @@
         <button id="c-export">export</button>
       </div>
     </div>
-    <div id="canvas">
+    <div id="mainbody">
+      <div id="canvas"></div>
+      <div id="sidebar">
+        <div id="app">
+          <playlist></playlist>
+        </div>
+      </div>
     </div>
+
+
+    <script src="ui/playlist-script.js"></script>
+    <script>
+      new Vue({
+        el:"#app"
+      });
+    </script>
+
+
+
+
   </main>
+
   <script src="https://open.spotify.com/embed-podcast/iframe-api/v1" async></script>
+
+  <!--script type="text/javascript">
+      const vueApp = new Vue({
+        el: "#app",
+        components: {
+          "playlist": httpVueLoader("playlist.vue"),
+        },
+      });
+  </script-->
+
 </body>
 
 </html>

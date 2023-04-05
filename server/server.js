@@ -10,6 +10,8 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
+express.static.mime.define({'text/x-vue': ['vue']});
+
 const DATA_DIR = "../client/data/small"
 
 function loadIds() {

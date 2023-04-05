@@ -19,12 +19,11 @@ window.onSpotifyIframeApiReady = (IFrameAPI) => {
   IFrameAPI.createController(element, options, callback);
 };
 
-async function preload() {
+
+const S = new p5()
 
 
-}
-
-async function setup() {
+async function setupSketch() {
   var p5canvas = createCanvas(windowWidth, windowHeight - 80)
   p5canvas.parent("canvas")
   diagonal = Math.sqrt(Math.pow(width, 2), Math.pow(height))
@@ -89,12 +88,6 @@ function mouseClicked() {
   
   map.onClick(mouseX, mouseY)
 
-}
-
-function touchStarted() {
-}
-
-function touchEnded() {
 }
 
 function keyPressed(ev) {
