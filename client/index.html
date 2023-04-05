@@ -10,7 +10,13 @@
       overflow: hidden;
       padding: 0;
       margin: 0;
-      background-color: #1b1b1b;
+      background-color: #FFFFFF;
+    }
+
+    main{
+      height: 100vh;
+      display: flex;
+      flex-direction: column
     }
 
     #help {
@@ -82,26 +88,46 @@
     #mainbody{
       display: flex;
       flex-direction: row;
+      flex-grow: 1;
+      align-items: stretch;
+    }
+
+    #sidebar{
+      width: 150px;
+      padding: 0px;
+      margin: 0px;
+    }
+
+    #sidebar #app{
+      margin: 0px;
+      padding: 0px;
+    }
+
+    #canvas{
+      flex-grow: 1;
+      width: 500px;
     }
 
     .guibtn{
       background-color: #FFFFFF;
-      box-shadow: 4px 4px 9px 0px #F0F0F0;
+      box-shadow: 3px 3px 7px 0px rgba(0.8, 0.8, 0.8, 0.08);
       text-align: center;
       font-family: sans-serif;
       width: auto;
-      margin: 4px;
-      padding: 4px;
+      margin:  10px;
+      padding: 5px;
       cursor: pointer;
       font-size: 14px;
       font-weight: bold;
+      border: 1px solid #F0F0F0;
+      border-radius: 3px;
     }
     .guibtn:hover{
       background-color: #F0F0F0;
     }
 
     #app{
-      background-color: #F0F0F0;
+      background-color: #FFFFFF;
     }
 
     #app ul{

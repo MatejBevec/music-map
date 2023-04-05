@@ -22,11 +22,18 @@ window.onSpotifyIframeApiReady = (IFrameAPI) => {
 
 //const S = new p5()
 
+var p5Canvas = null
 
 async function setup() {
-  var p5canvas = createCanvas(windowWidth, windowHeight - 80)
+  
   var canvasElement = document.getElementById("canvas")
-  p5canvas.parent(canvasElement)
+  let w = canvasElement.offsetWidth
+  let h = canvasElement.offsetHeight
+  console.log(w, h)
+  var p5Canvas = createCanvas(w, h)
+  p5Canvas.setAttribute
+  console.log(canvasElement)
+  p5Canvas.parent(canvasElement)
   diagonal = Math.sqrt(Math.pow(width, 2), Math.pow(height))
 
   fileReader = new FileReader()
@@ -75,6 +82,16 @@ async function setup() {
 }
 
 
+function windowResized() {
+  var canvasElement = document.getElementById("canvas")
+  let w = canvasElement.offsetWidth
+  let h = canvasElement.offsetHeight
+  console.log(w, h)
+  resizeCanvas(w, h)
+  
+}
+
+
 // -- DRAW LOOP --
 
 async function draw() {
@@ -85,11 +102,17 @@ async function draw() {
 }
 
 
-function mouseClicked() {
+function mouseClicked(ev) {
   
-  map.onClick(mouseX, mouseY)
+  //if (ev.target.id == "canvas")
+
+  let el = ev.target
+  if (el.id == "canvas" || el.closest("canvas") !== null){
+    map.onClick(mouseX, mouseY)
+  }
 
 }
+
 
 function keyPressed(ev) {
 

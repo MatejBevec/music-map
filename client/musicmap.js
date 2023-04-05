@@ -151,7 +151,6 @@
     onClick(x, y){
       // Select song or move window depending on location
       
-      if (y < 50) return // BODGE BODGE BODGE !!!!!!
       if (this.hoverDist < 0.03){
         //map.selectPoint(this.hover)
         // TEMP
