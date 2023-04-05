@@ -20,12 +20,13 @@ window.onSpotifyIframeApiReady = (IFrameAPI) => {
 };
 
 
-const S = new p5()
+//const S = new p5()
 
 
-async function setupSketch() {
+async function setup() {
   var p5canvas = createCanvas(windowWidth, windowHeight - 80)
-  p5canvas.parent("canvas")
+  var canvasElement = document.getElementById("canvas")
+  p5canvas.parent(canvasElement)
   diagonal = Math.sqrt(Math.pow(width, 2), Math.pow(height))
 
   fileReader = new FileReader()
