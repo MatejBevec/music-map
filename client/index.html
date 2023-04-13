@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no">
-  <title>Viz Test</title>
+  <title>Music Map</title>
   <style>
     body {
       overflow: hidden;
@@ -52,11 +52,14 @@
       background-color: white;
       display: flex;
       justify-content: space-between;
+      border-bottom: 1px solid #E0E0E0;
+      padding: 10px
     }
 
 
     #embed-iframe {
       flex-grow: 3;
+      xheight:100px;
     }
 
     #controls {
@@ -64,6 +67,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      margin:0;
+      padding:0;
+      height:80px;
     }
 
     #controls button{
@@ -72,11 +78,13 @@
       border: 0px;
       width: 60px;
       height: 60px;
+      margin-top: 0;
+
       margin-left: 10px;
       margin-right: 10px;
       cursor: pointer;
       border-radius: 5px;
-      border: 2px solid  black;
+      xborder: 2px solid  black;
       font-weight: bold;
     }
 
@@ -97,6 +105,8 @@
       width: 230px;
       padding: 0px;
       margin: 0px;
+      xborder-left: 1px solid #E0E0E0;
+      box-shadow: -7px 0px 12px 0px rgba(255,255,255,1);
     }
 
     #sidebar #app{
@@ -225,10 +235,10 @@
     <div id="topbar">
       <div id="embed-iframe"></div>
       <div id="controls">
-        <button id="c-left">&lt;</button>
-        <button id="c-right">&gt;</button>
-        <button id="c-delete">create</button>
-        <button id="c-export">export</button>
+        <button id="c-search" style="font-size: 18px;">🔍︎</button>
+        <button id="c-delete" style="font-size: 23px;">◎</button>
+        <button id="c-left" style="font-size: 24px;">⇠</button>
+        <button id="c-right" style="font-size: 24px;">⇢</button>
       </div>
     </div>
     <div id="mainbody">

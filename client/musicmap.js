@@ -173,14 +173,14 @@
           this.walk = Walk.journey(this, this.selected, q, "auto", 3)
           vueEventBus.$emit("walk-changed")
           this.toNormalMode()
-          document.getElementById("c-delete").innerHTML = "delete" // BODGE
+          //document.getElementById("c-delete").innerHTML = "delete" // BODGE
         }
         else{
           //map.walk = Walk.giro(map, q, 11, 0.04)
           this.walk = Walk.random(this, q, 8, 12)
           this.walk.moveTo(0)
           vueEventBus.$emit("walk-changed")
-          document.getElementById("c-delete").innerHTML = "delete" // BODGE
+          //document.getElementById("c-delete").innerHTML = "delete" // BODGE
         }
 
       }
@@ -648,7 +648,8 @@
         // [r, g, b] = this.colors[i]
         //fill(r, g, b)
         //ellipse(p[0], p[1], 5, 5)
-        if (SCALE_COLLAPSED) size = Math.sqrt(this.winSizes[wi]) * 5
+        if (SCALE_COLLAPSED) size = Math.sqrt(this.winSizes[wi]) * BLOB_SIZE_FACTOR
+        if (size > BLOB_SIZE_MAX) size = BLOB_SIZE_MAX
         // TODO
         this.drawables[i].draw(p, size)
         if (this.windowW < LABELS_ZOOM){
@@ -679,9 +680,23 @@
         triangle(p[0], p[1]-10, p[0]-5, p[1]-20, p[0]+5, p[1]-20)
       }
 
-      // Current top tag
+      // Manual top-level genre tags
+      if (this.windowW > 0.9){
+      textSize(11)
+      textAlign(CENTER)
+      for (let tg of TOP_LEVEL_TAGS){
+        let tgPos = this.toScreen([tg[0], tg[1]])
+        fill(255, 255, 255)
+        rect(tgPos[0]-45, tgPos[1]-14, 80, 20)
+        fill(0, 0, 0, 255)
+        text(tg[2], tgPos[0], tgPos[1])
+      }
+      textAlign(LEFT)
+    }
+      
+
       fill(0, 0, 0)
-      text(this.topTag, 32, height-32)
+      text(this.toGlobal([mouseX, mouseY]), 32, height-32)
     }
 
 
@@ -690,7 +705,6 @@
       //this.walk = Walk.giro(this, q, 11, 0.02)
       this.walk = Walk.giro(this, q, "auto", "auto")
       this.walk.moveTo(0)
-      document.getElementById("c-delete").innerHTML = "delete" // BODGE
       vueEventBus.$emit("walk-changed") 
     }
   

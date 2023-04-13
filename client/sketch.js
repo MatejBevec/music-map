@@ -15,9 +15,25 @@ window.onSpotifyIframeApiReady = (IFrameAPI) => {
     };
   let callback = (EmbedController) => {
     embedController = EmbedController
+
+    console.log(embedController)
+
+    console.log(embedController)
+
+    EmbedController.addListener("playback_update", e => {
+      if(e.data.duration > 1  && e.data.duration - e.data.position < 10){
+        if (map.walk) map.walk.next()
+        setTimeout(() => {
+          EmbedController.play()
+        }, 10)
+      }
+    })
+
+
   };
   IFrameAPI.createController(element, options, callback);
 };
+
 
 
 //const S = new p5()
@@ -28,7 +44,7 @@ async function setup() {
   
   var canvasElement = document.getElementById("canvas")
   let w = canvasElement.offsetWidth
-  let h = canvasElement.offsetHeight
+  let h = canvasElement.offsetHeight * 1.15
   console.log(w, h)
   var p5Canvas = createCanvas(w, h)
   p5Canvas.setAttribute
@@ -43,10 +59,16 @@ async function setup() {
   document.getElementById("c-right").onclick = (ev) => walkNext()
   var delBtn = document.getElementById("c-delete")
   delBtn.onclick = (ev) => {
-    if (map.walk == null)
-      walkMake()
-    else
-      walkDelete()
+    if (USE_IMG){
+      USE_IMG = false
+      delBtn.innerHTML = "◎"
+      map.resetWindow()
+    }
+    else {
+      USE_IMG = true
+      delBtn.innerHTML = "▨"
+      map.resetWindow()
+    }
       
   } 
 
@@ -259,7 +281,6 @@ function walkPrev(){
 
 function walkDelete(){
   map.walk = null
-  document.getElementById("c-delete").innerHTML = "create" // BODGE
   vueEventBus.$emit("walk-changed") // BODGE
 }
 

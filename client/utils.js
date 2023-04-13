@@ -18,6 +18,8 @@ const TR_THR = 0.0001
 const MIN_DIST = 0.04
 const ADAPT_MIN_DIST = true
 const SCALE_COLLAPSED = true
+const BLOB_SIZE_FACTOR = 5
+const BLOB_SIZE_MAX = 50
 
 const MIN_ZOOM = 0.01
 const MAX_ZOOM = 0.5
@@ -52,6 +54,22 @@ const GENRE_COLORS = {
 }
 
 const GENRE_GRID_LEVELS = [0.4, 0.2, 0.1]
+
+const TOP_LEVEL_TAGS = [
+  [0.2, 0.63, "Hip Hop 🎤"],
+  [0.19, 0.34, "Pop 🎵"],
+  [0.11, 0.08, "Rock 🎸"],
+  [0.4, 0.35, "Electronic 🤖"],
+  [0.65, 0.1, "Latin 💃🏻"],
+  [0.77, 0.5, "Latin (Brazil) 💚"],
+  [0.95, 0.35, "Latin (Mexico) 🪅"],
+  [0.48, 0.7, "K-pop 🎶"],
+  [0.41, 0.9, "Pop (India) 🐯"],
+  [0.36, 0.17, "Christmas pop 🎅🏻"],
+  [0.28, 0.41, "Country 🤠"],
+  [0.075, 0.22, "Metal ☠︎︎"]
+
+]
 
 
 // GLOBAL VARIABLES
