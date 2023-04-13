@@ -63,19 +63,19 @@ def genre_class(genre_tags):
         if re.search(r"classical|violin", tag) is not None:
             genres["classical"] += 1
 
-        if re.search(r"country|hillbilly", tag) is not None:
+        if re.search(r"country|hillbilly|pagode", tag) is not None:
             genres["country"] += 1
 
-        if re.search(r"blues", tag) is not None:
+        if re.search(r"blues|gospel", tag) is not None:
             genres["blues"] += 1
 
         if re.search(r"folk|holler", tag) is not None:
             genres["classical"] += 1
 
-        if re.search(r"rock|indie$|alternative$|grunge$|permanent wave", tag) is not None:
+        if re.search(r"rock|indie$|alternative$|grunge$|permanent wave|alt z|neo mellow|sped up|hyperpop", tag) is not None:
             genres["rock"] += 1
 
-        if re.search(r"punk|goth", tag) is not None: # maybe this is just rock?
+        if re.search(r"punk|goth|alt z", tag) is not None: # maybe this is just rock?
             genres["punk"] += 1
 
         if re.search(r"metal|trash|grunge$", tag) is not None:
@@ -87,17 +87,19 @@ def genre_class(genre_tags):
         if re.search(r"soul|r&b|funk|disco", tag) is not None:
             genres["soul"] += 1
 
-        if re.search(r"pop", tag) is not None:
+        if re.search(r"pop|opm|adult standards", tag) is not None:
             genres["pop"] += 1
 
-        if re.search(r"electronic|electro|synthpop|wave", tag) is not None or \
-        re.search(r"house|techno|beat|downtempo|trance|hardcore|edm|dnb|ebm|idm|dance|glitch|hyperpop", tag) is not None:
+        if re.search(r"electronic|electro|synthpop|wave|clubbing|aussietronica", tag) is not None or \
+        re.search(r"house|techno|beat|downtempo|trance|hardcore|edm|dnb|ebm|idm|dance|glitch|hyperpop|lo-fi|\
+                  fnaf|bass|sped up|cubaton|$schlager|hardstyle|weirdcore", tag) is not None:
             genres["electronic"] += 1
 
-        if re.search(r"hip hop|rap|trap", tag) is not None:
+        if re.search(r"hip hop|rap|trap|plugg|phonk|drill", tag) is not None:
             genres["hiphop"] += 1
 
-        if re.search(r"latin|reggaeton|salsa|tropical|bossa|musica|mpb|spanish|espanol|mariachi|ranchera|mexican|forro|tango", tag) is not None:
+        if re.search(r"latin|reggaeton|salsa|tropical|bossa|musica|mpb|spanish|espanol|mariachi|ranchera|mexican|\
+                     forro|tango|arrocha|sertanejo|pagode|adoracao|brazilian|espanol|cumbia|opm|argentino|cubaton|forro|banda|guaracha", tag) is not None:
             genres["latin"] += 1
 
         if re.search(r"reggae|dub", tag) is not None:
@@ -109,12 +111,14 @@ def genre_class(genre_tags):
 if __name__ == "__main__":
     
 
-    if sys.argv[1] == "genres":
-        pth = sys.argv[2] + "/tracks.json"
+    if sys.argv[2] == "genres":
+        pth = sys.argv[1] + "/tracks.json"
         with open(pth, "r", encoding="utf-8") as f:
             tracks = json.load(f)
         classes = genre_classes(tracks)
+        print("hello")
         for track in tracks:
+            print(classes[track])
             tracks[track]["genre_class"] = classes[track]
         with open(pth, "w", encoding="utf-8") as f:
             json.dump(tracks, f, indent=2)

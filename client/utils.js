@@ -57,7 +57,7 @@ const GENRE_GRID_LEVELS = [0.4, 0.2, 0.1]
 // GLOBAL VARIABLES
 
 var map = null
-var DEBUG_MODE = true
+var DEBUG_MODE = false
 var USE_IMG = false
 var playingClip = null
 var diagonal = 0

@@ -93,8 +93,10 @@
       
       // Init view
       map.moveDone = true
-      map.changeWindow([0.5-WINW/2, 0.5-WINH/2], [0.5+WINW/2, 0.5+WINH/2])
-      map.moveWindow([0.5, 0.5])
+      //map.changeWindow([0.5-WINW/2, 0.5-WINH/2], [0.5+WINW/2, 0.5+WINH/2])
+      //map.moveWindow([0.5, 0.5])
+      map.changeWindow([0.1, 0.1], [0.9, 0.9])
+      map.moveWindow(null, [0, 0])
       return map
   
     }
