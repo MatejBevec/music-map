@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs/promises');
 
 const loadIdsSync = require('./helpers/loadIdsSync');
 const loadImgs = require('./helpers/loadImgs');
