@@ -240,6 +240,7 @@ async function fetchImages(ids, batchSize){
     body: JSON.stringify(ids)
   })
   //console.log("awaited response")
+  console.log(response)
   const json = await response.json()
   return json
 }

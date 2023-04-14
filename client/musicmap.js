@@ -695,8 +695,8 @@
     }
       
 
-      fill(0, 0, 0)
-      text(this.toGlobal([mouseX, mouseY]), 32, height-32)
+      //fill(0, 0, 0)
+      //text(this.toGlobal([mouseX, mouseY]), 32, height-32)
     }
 
 

@@ -111,6 +111,7 @@ class DrawablePoint {
       this.i = 0
       this.playerEl = document.getElementById("embed-iframe")      // BODGE
       this.showPath = showPath
+      this.isLoop = false
 
       //BODGE, this should definitely not be here
     }
@@ -124,7 +125,8 @@ class DrawablePoint {
       stroke(c[0], c[1], c[2])
       noFill()
       beginShape()
-      var p = this.map.toScreen(this.map.proj[this.indices[0]])
+      var p0 = this.map.toScreen(this.map.proj[this.indices[0]])
+      var p = p0
 
       // Draw connecting curve
       if (this.showPath){
@@ -134,9 +136,12 @@ class DrawablePoint {
             var pGlob = this.map.proj[i]
             p = this.map.toScreen(pGlob)
             curveVertex(p[0], p[1])
-
         }
-        curveVertex(p[0], p[1])
+        //curveVertex(p[0], p[1])
+        if (this.isLoop){
+          curveVertex(p0[0], p0[1])
+          curveVertex(p0[0], p0[1])
+        }
         endShape()
         }
 
@@ -163,7 +168,7 @@ class DrawablePoint {
     moveTo(i){
       // Select i-th song in this walk on the map
 
-      i = i % (this.indices.length - 1)
+      i = i % (this.indices.length)
       this.i = (i < 0) ? (this.indices.length - 1) + i : i
       this.map.selectPoint(this.indices[this.i])
       // var p = this.map.proj[this.indices[this.i]]
@@ -244,7 +249,7 @@ class DrawablePoint {
       // query should be on top of circle:
       origin = [origin[0], origin[1] + dist]
       var walk = [q]
-      for (var i = 1; i < controls; i++){
+      for (var i = 1; i < controls-1; i++){
         var ang = angle * i/(controls-1)
         var x = origin[0] + dist * Math.cos(ang - Math.PI/2)
         var y = origin[1] + dist * Math.sin(ang - Math.PI/2)
@@ -257,9 +262,10 @@ class DrawablePoint {
           }
         }
       }
-      walk[walk.length-1] = q // !
-
-      return new Walk(map, walk, true)
+      //walk[walk.length-1] = q // !
+      let walkObj = new Walk(map, walk, true)
+      walkObj.isLoop = true
+      return walkObj
     }
 
     static journey(map, from, to, controls, k){
