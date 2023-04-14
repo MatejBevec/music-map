@@ -1,79 +1,51 @@
-const express = require("express")
-const bodyParser = require("body-parser")
-const fs = require("fs")
-const util = require("util")
+const express = require('express');
 
+const loadIdsSync = require('./helpers/loadIdsSync');
+const loadImgs = require('./helpers/loadImgs');
+
+const DATA_DIR = '../client/data/small';
+
+const IDS = loadIdsSync(DATA_DIR);
 
 // INIT
 
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('../client'));
 
-express.static.mime.define({'text/x-vue': ['vue']});
-
-const DATA_DIR = "../client/data/small"
-
-function loadIds() {
-    const data = fs.readFileSync(DATA_DIR + "/graph.json")
-    const ids = JSON.parse(data)["tracks"]
-    return ids
-}
-
-const IDS = loadIds()
-
+express.static.mime.define({ 'text/x-vue': ['vue'] });
 
 // ENDPOINTS
 
-app.get("/", (req, res) => {
-    res.redirect("/index.html")
-})
+app.get('/', (req, res) => {
+	return res.redirect('/index.html');
+});
 
-function loadImgsSync(ids){
-    const batch = {}
-    for (let id of ids){
-        console.log(id)
-        const path = DATA_DIR + "/resized_images/" + id + ".jpg"
-        let dataUrl = fs.readFileSync(path, "base64url")
-        dataUrl = "data:image/png;base64," + dataUrl
-        batch[id] = dataUrl        
-    }
-    return batch
-}
+app.get('/images', async (req, res, next) => {
+	// TEMP: For testing
+	const ids = IDS.slice(0, 100);
 
-const readFile = util.promisify(fs.readFile)
+	try {
+		const batch = await loadImgs(ids, DATA_DIR);
 
-async function loadImgs(ids){
-    const batch = {}
-    for (let id of ids){
-        console.log(id)
-        const path = DATA_DIR + "/resized_images/" + id + ".jpg"
-        //let err, dataUrl
-        let dataUrl = await readFile(path, "base64url", )
-        dataUrl = "data:image/png;base64," + dataUrl
-        batch[id] = dataUrl        
-    }
-    return batch
-}
+		return res.json(batch);
+	} catch (err) {
+		return next(err);
+	}
+});
 
-app.get("/images", (req, res) => {
-    // TEMP: For testing
-    const ids = IDS.slice(0, 100)
-    loadImgs(ids).then((batch) => {
-        res.json(batch)
-    })
-})
+app.post('/images', async (req, res, next) => {
+	// Send the requested batch of images as json of data URLs
+	const ids = req.body;
 
-app.post("/images", (req, res) => {
-    // Send the requested batch of images as json of data URLs
-    const ids = req.body
-    loadImgs(ids).then((batch) => {
-        console.log("done")
-        res.json(batch)
-    })
-    
-})
+	try {
+		const batch = await loadImgs(ids, DATA_DIR);
 
+		return res.json(batch);
+	} catch (err) {
+		return next(err);
+	}
+});
 
-app.use(express.static("../client"))
-app.listen(3000)
+app.listen(3000, () => console.log('Listening on port: 3000'));
