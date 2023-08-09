@@ -42,6 +42,16 @@ var p5Canvas = null
 
 async function setup() {
   
+
+  // OVERRIDE GLOBALS FROM CONFIG FILE profiles.json
+
+  if (!document.cookie)
+    document.cookie = "small"
+
+  var PROFILES = (await fetchJson("./profiles.json"))["profiles"]
+  Object.entries(PROFILES[document.cookie]).forEach(([key, value]) => globalThis[key] = value)
+
+  
   var canvasElement = document.getElementById("canvas")
   let w = canvasElement.offsetWidth
   let h = canvasElement.offsetHeight * 1.15
@@ -161,6 +171,14 @@ function keyPressed(ev) {
   }
   else if (key === "1"){
     map.minDist = Math.max(map.minDist - 0.005, 0)
+  }
+  if (key === "3"){
+    document.cookie = "small"
+    location.reload()
+  }
+  else if (key === "4"){
+    document.cookie = "medium"
+    location.reload()
   }
   if (key == "q"){
     DEBUG_MODE = !DEBUG_MODE

@@ -3,39 +3,38 @@
 
 // CONSTANTS
 
-const IMG_SIZE = 28
-const DATA_DIR = "data/small"
-const MOVE_AMOUNT = 0.2
-const ZOOM_AMOUNT = 0.2
-const WINW = 0.1
-const WINH = 0.1
-//const MARGIN = 0.05
-const MARGIN = 0.25
-const TRANSITION = 1 // tr. time in seconds
-const TR_RATIO = 0.1
-const TR_THR = 0.0001
+var IMG_SIZE = 28                         // album cover image size
+var DATA_DIR = "data/medium"              // dataset directory
+var MOVE_AMOUNT = 0.2                     // amount (in global) to move with single arrow key press
+var ZOOM_AMOUNT = 0.2                     // amount (in global) to move with single mouse scroll
+var WINW = 0.1                            // initial viewing window width (in global)
+var WINH = 0.1                            // initial viewing window height (in global)
+var MARGIN = 0.25    //0.25                     // buffer/loading margin around window (in % of WINW)   
+var TR_RATIO = 0.1                        // interpolaton factor per frame for the exponential transition anim.
+var TR_THR = 0.0001                       // end transition when difference is smaller than this
 
-const MIN_DIST = 0.04
-const ADAPT_MIN_DIST = true
-const SCALE_COLLAPSED = true
-const BLOB_SIZE_FACTOR = 5
-const BLOB_SIZE_MAX = 50
+var MIN_DIST = 0.16  //0.04                      // distance (in % of WINW) under which to collapse multiple points into one
+var ADAPT_MIN_DIST = true                 // collapsing distance is relative to WINH
+var SCALE_COLLAPSED = true                // show collapsed points as bigger blobs (proportional to # of points)
+var BLOB_SIZE_FACTOR = 5                  // collapsed blob size will be this times # number of points
+var BLOB_SIZE_MAX = 50                    // cap larger blobs to this size (for visual clarity)
 
-const MIN_ZOOM = 0.01
-const MAX_ZOOM = 0.5
-const LABELS_ZOOM = 0.03
+var MIN_ZOOM = 0.005   //0.01                    // smallest allowed window (most zoomed in, in global)
+var MAX_ZOOM = 0.8     //0.5                    // largest allowed window (most zoomed out, in global)
+var LABELS_ZOOM = 0.02  //0.03                   // window size when song info (artist, title) become visible (in global)
 
-const WALK_STROKE = 2
-const IMG_SEL_PAD = 8
-const DOT_SEL_PAD = 16
+var WALK_STROKE = 2                       // stroke width for line connecting songs on walk/playlist           
+var IMG_SEL_PAD = 8                       // stroke width for border around selected song's album cover
+var DOT_SEL_PAD = 16                      // stroke width for border around selected song's dot (when without imgs)
 
-const HOVER_DIST = 0.03
-const WALK_DENSITY = 10 //global for all walks (of life)
-const JOURNEY_DENSITY = 0.12 //modifier for from-to walk
-const RELATIVE_JOURNEY_DENSITY = false // if true, number of nodes is constant to view (doesnt depend on global walk length)
+var HOVER_DIST = 0.03                     // radius of a point, i.e. distance under which a click selects the song
+var WALK_DENSITY = 10                     // how many songs to fit to a walk
+                                            // i.e. if walk spans entire window, appr. WALK_DENSITY songs will be selected
+var JOURNEY_DENSITY = 0.12                // modifier for from-to walk
+var RELATIVE_JOURNEY_DENSITY = false      // if true, number of songs in instead global
 
-const USE_GENRE_COLORS = true
-const GENRE_COLORS = {
+var USE_GENRE_COLORS = true               // color blobs and subgenre regions by top-level genre
+var GENRE_COLORS = {                      // top-level genre colors
   "classical": [187, 235, 255],
   "country": [85, 60, 38],
   "blues": [61, 85, 38],
@@ -53,9 +52,9 @@ const GENRE_COLORS = {
   "other": [0, 0, 0]
 }
 
-const GENRE_GRID_LEVELS = [0.4, 0.2, 0.1]
+var GENRE_GRID_LEVELS = [0.4, 0.2, 0.1]   // zooms levels where the 3 LOD of the subgenre grid are shown
 
-const TOP_LEVEL_TAGS = [
+var TOP_LEVEL_TAGS = [                    // manual descriptive tags for top-level clusters
   [0.2, 0.63, "Hip Hop 🎤"],
   [0.19, 0.34, "Pop 🎵"],
   [0.11, 0.08, "Rock 🎸"],
@@ -71,18 +70,18 @@ const TOP_LEVEL_TAGS = [
 
 ]
 
-
 // GLOBAL VARIABLES
 
-var map = null
-var DEBUG_MODE = false
-var USE_IMG = false
-var playingClip = null
-var diagonal = 0
-var fileReader
-var hasLoaded = false
+var map = null                              // the instance for entire map object
+var DEBUG_MODE = false                      // if true zoom out and show viewing window in frame
+var USE_IMG = false                         // true to show album covers, false to show colored blobs
+var playingClip = null                      // currently playing song file [OBSOLETE]
+var diagonal = 0                            // the diagonal length of the current viewing window
+var fileReader                              // OBSOLETE?
+var hasLoaded = false                       // true when dataset has loaded and is ready to display
 
-// Pinch zoom
+// PINCH ZOOM STUFF [TODO]
+
 var evCache = [];
 var prevDiff = -1;
 
@@ -237,7 +236,7 @@ async function fetchImages(ids, batchSize){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     },
-    body: JSON.stringify(ids)
+    body: JSON.stringify({data_dir: DATA_DIR, ids: ids})
   })
   //console.log("awaited response")
   console.log(response)

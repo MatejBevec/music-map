@@ -14,9 +14,10 @@
     static async build(embeddings, projectedPath, dgramPath, landmarksPath, metadata, imgDir){
       // Creates and populates map instance async.
       
-      if (typeof embeddings === 'string' || embeddings instanceof String){
-        embeddings = await fetchJson(embeddings)
-      }
+      embeddings = null
+      // if (typeof embeddings === 'string' || embeddings instanceof String){
+      //   embeddings = await fetchJson(embeddings)
+      // }
   
       // Load precomputed TSNE projections
       var projections = await fetchJson(projectedPath)
@@ -42,7 +43,7 @@
       // Construct hierarchical dendrogram (for coalescing zoom)
       var dgram = await computeDendrogramLoad(projections, dgramPath)
 
-      // Load subgenre grid pyramid
+      // Load subgenre grid 
       var landmarkGrid, landmarkSizes
       [landmarkSizes, landmarkGrid] = await fetchJson(landmarksPath)
 
@@ -107,7 +108,7 @@
       var halfx = (p0[0] + p1[0])/2
       var halfy = (p0[1] + p1[1])/2
       var midpoint = {x: halfx, y: halfy}
-      var winP = this.tree.nearest(midpoint, 5500, Math.max(halfx, halfy))
+      var winP = this.tree.nearest(midpoint, 150500, Math.max(halfx, halfy))
   
       let mar = this.margin * (p1[0] - p0[0])
       var inXRange = p => p[0].x > p0[0]-mar && p[0].x < p1[0]+mar

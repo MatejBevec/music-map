@@ -6,6 +6,7 @@ import json
 import numpy as np
 import sklearn
 from scipy.cluster import hierarchy
+import fastcluster
 
 
 def compute_dgram(pts):
@@ -15,6 +16,17 @@ def compute_dgram(pts):
     linkage = hierarchy.linkage(list(zip(pts[:,0], pts[:,1])), method='ward', metric='euclidean')
 
     #dgram = np.zeros((pts.shape[0] + linkage.shape[0], 3))
+
+    dgram = linkage[:, :4]
+
+    return dgram
+
+
+def compute_dgram_fast(pts):
+
+    pts = np.array(pts)
+
+    linkage = fastcluster.linkage_vector(list(zip(pts[:,0], pts[:,1])), method='ward', metric='euclidean')
 
     dgram = linkage[:, :4]
 
@@ -31,7 +43,7 @@ if __name__ == "__main__":
     with open(srcpth, "r") as f:
         pts = json.load(f)
 
-    dgram = compute_dgram(pts)
+    dgram = compute_dgram_fast(pts)
 
     print(savepth)
 

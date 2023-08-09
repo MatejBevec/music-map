@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "predeploy": [
+      "export FIREBASE_HOSTING_UPLOAD_CONCURRENCY=10"
+    ],
+    "public": "client",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "client/index.html"
+      }
+    ],
+    "timeout": 6000
+  }
+}

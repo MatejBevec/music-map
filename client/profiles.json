@@ -1,0 +1,46 @@
+{
+    "profiles": {
+        
+
+        "small": {
+            "PROFILE_NAME": "Small",
+            "DATA_DIR": "data/small",
+            "MARGIN": 0.25,
+            "MIN_DIST": 0.04,
+            "MIN_ZOOM": 0.01,
+            "MAX_ZOOM": 0.5,
+            "LABELS_ZOOM": 0.03,
+            "WALK_DENSITY": 10,
+            "GENRE_GRID_LEVELS": [0.4, 0.2, 0.1],
+
+            "TOP_LEVEL_TAGS": [
+                [0.2, 0.63, "Hip Hop 🎤"],
+                [0.19, 0.34, "Pop 🎵"],
+                [0.11, 0.08, "Rock 🎸"],
+                [0.4, 0.35, "Electronic 🤖"],
+                [0.65, 0.1, "Latin 💃🏻"],
+                [0.77, 0.5, "Latin (Brazil) 💚"],
+                [0.95, 0.35, "Latin (Mexico) 🪅"],
+                [0.48, 0.7, "K-pop 🎶"],
+                [0.41, 0.9, "Pop (India) 🐯"],
+                [0.36, 0.17, "Christmas pop 🎅🏻"],
+                [0.28, 0.41, "Country 🤠"],
+                [0.075, 0.22, "Metal ☠︎︎"]
+            ]
+        },
+
+
+        "medium": {
+            "PROFILE_NAME": "Medium",
+            "DATA_DIR": "data/medium",
+            "MARGIN": 0.25,
+            "MIN_DIST": 0.16,
+            "MIN_ZOOM": 0.005,
+            "MAX_ZOOM": 0.8,
+            "LABELS_ZOOM": 0.02,
+            "WALK_DENSITY": 20,
+            "GENRE_GRID_LEVELS": [0.4, 0.2, 0.1]
+        }
+
+    }
+}

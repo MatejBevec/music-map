@@ -31,7 +31,8 @@ def load_embedding(pth):
         else:
             load_func= np.load
 
-        for fn in fns:
+        for i, fn in enumerate(fns):
+            if i%1000 == 0: print(f"{i}/{len(fns)} done")
             emb.append(load_func(os.path.join(pth, fn)))
         
         emb = np.array(emb)
@@ -109,8 +110,9 @@ def compute_tsne(emb):
                 perplexity=50.0,
                 early_exaggeration=12.0,
                 learning_rate="auto",
-                n_iter=5000,
-                init="pca"
+                n_iter=3000,
+                init="pca",
+                verbose=True,
             )
 
     proj = tsne.fit_transform(emb)
@@ -185,7 +187,6 @@ if __name__ == "__main__":
 
     proj_tsne = compute_tsne(emb)
     proj_umap = compute_umap(emb)
-    print(len(pro))
     #proj_lda = compute_lda(emb, genres)
 
     show_plot(proj_tsne, genres, "t-SNE", metadata=metadata)

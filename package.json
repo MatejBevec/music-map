@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "firebase-tools": "^11.26.0"
+  },
+  "scripts": {
+    "start": "cd ./server && npm start"
+  }
+}

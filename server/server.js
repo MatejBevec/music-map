@@ -43,12 +43,12 @@ function loadImgsSync(ids){
 
 const readFile = util.promisify(fs.readFile)
 
-async function loadImgs(ids){
+async function loadImgs(data_dir, ids){
     const batch = {}
     for (let id of ids){
         console.log(id)
-        const path = DATA_DIR + "/resized_images/" + id + ".jpg"
-        //let err, dataUrl
+        //const path = DATA_DIR + "/resized_images/" + id + ".jpg"
+        const path = data_dir + "/resized_images/" + id + ".jpg"
         let dataUrl = await readFile(path, "base64url", )
         dataUrl = "data:image/png;base64," + dataUrl
         batch[id] = dataUrl        
@@ -66,8 +66,8 @@ app.get("/images", (req, res) => {
 
 app.post("/images", (req, res) => {
     // Send the requested batch of images as json of data URLs
-    const ids = req.body
-    loadImgs(ids).then((batch) => {
+    const ids = req.body.ids
+    loadImgs(req.body.data_dir, ids).then((batch) => {
         console.log("done")
         res.json(batch)
     })
