@@ -56,18 +56,11 @@ async function loadImgs(data_dir, ids){
     return batch
 }
 
-app.get("/images", (req, res) => {
-    // TEMP: For testing
-    const ids = IDS.slice(0, 100)
-    loadImgs(ids).then((batch) => {
-        res.json(batch)
-    })
-})
-
 app.post("/images", (req, res) => {
     // Send the requested batch of images as json of data URLs
+    const data_dir = "../client/" + req.body.data_dir // TODO: photos should be in client folder
     const ids = req.body.ids
-    loadImgs(req.body.data_dir, ids).then((batch) => {
+    loadImgs(data_dir, ids).then((batch) => {
         console.log("done")
         res.json(batch)
     })
