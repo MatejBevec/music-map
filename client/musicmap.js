@@ -1,3 +1,14 @@
+// TIMING
+
+let timingStep = 0
+let timingWindow = 100
+
+let timeComputeView = 0
+let timeGridCells = 0
+let timePoints = 0
+
+
+
 
 // ------------------ MUSIC MAP CLASS ------------------ 
   
@@ -73,9 +84,16 @@
       map.landmarkSizes = landmarkSizes
       map.landmarkGridView = null
       map.prevGridView = null
+      map.interpolX = 1
       map.interpol = 1
       map.hovered = null
       map.hoveredDist = 0
+      
+      //TEMP
+      map.p0Prev = [0.5, 0.5]
+      map.p1Prev = [0.5, 0.5]
+      map.p0 = [0.5, 0.5]
+      map.p1 = [0.5, 0.5]
 
       //TEMP
       map.addMode = false
@@ -223,10 +241,19 @@
   
       //console.log("change window to", p0, p1)
   
-      this.p0Lazy = this.p0
-      this.p1Lazy = this.p1
-      this.moveDone = false
-  
+
+      if (this.moveDone){
+        this.p0Lazy = this.p0
+        this.p1Lazy = this.p1
+        this.p0Prev = this.p0
+        this.p1Prev = this.p1
+        this.moveDone = false
+        this.interpolX = 0
+      }
+      else {
+        this.interpolX = getInterpolFactor(this.p0Prev, this.p0, p0)
+      }
+
       this.p0 = p0
       this.p1 = p1
       this.midp = [(p0[0] + p1[0])/2, (p0[1] + p1[1])/2]
@@ -237,17 +264,31 @@
       console.log(this.windowW)
       this.minDist = MIN_DIST * (this.windowW - MIN_ZOOM)
       
+      let t0 = Date.now()
+
+      // TODO: fetching and coalescing points should be done async to avoid lagging the camera movement
+      // TODO: can it also be done faster?
+
       this.winIdxAll = this.pointsInWindow(p0, p1)
+
+      console.log("Fetching points in window: " + (Date.now() - t0))
+      t0 = Date.now()
       
       // Get coalesced points
       var ret = this.collapsePoints(this.winIdxAll, this.minDist)
       this.winIdx = ret[0]
       this.winSizes = ret[1]
       this.winIdxSet = new Set(this.winIdx)
+
+      console.log("Coalescing: " + (Date.now() - t0))
+      t0 = Date.now()
       
       // Find points to load and unload compared to prev. view
       var loadIdxSet = [...this.winIdxSet].filter(el => !oldIdxSet.has(el))
       var unloadIdxSet = [...oldIdxSet].filter(el => !this.winIdxSet.has(el))
+
+      console.log("Filtering new points: " + (Date.now() - t0))
+      t0 = Date.now()
   
       // Load new images in batches
       if (USE_IMG){
@@ -266,7 +307,7 @@
         //   })
         // }
         
-        // -- FETCH IMGS AS IN BATCH AS JSON OF DATA URLS --
+        // -- FETCH IMGS IN BATCH AS JSON OF DATA URLS --
         fetchImages(newIds, 30).then((dict) => {
           const ids = Object.keys(dict)
           //console.log("received: ", ids)
@@ -277,6 +318,9 @@
         })
       }
 
+      console.log("Fetching images: " + (Date.now() - t0))
+      t0 = Date.now()
+
 
       // Change current top genre tag
       this.topTag = this.getTopTag("genre_class")
@@ -284,6 +328,9 @@
       // Compute subgenre grid info for current view
       this.prevGridView = this.landmarkGridView
       this.landmarkGridView = this.computeGenreGridView()
+
+      console.log("Computing subgenre grid: " + (Date.now() - t0))
+      t0 = Date.now()
   
     }
 
@@ -576,23 +623,42 @@
   
     draw(){
       // Draw the map at every time step
+
+      let t0 = Date.now()
   
       // Interpolate to new view
       if (!this.moveDone){
-        var p0Delta = [this.p0[0] - this.p0Lazy[0], this.p0[1] - this.p0Lazy[1]]
-        var p1Delta = [this.p1[0] - this.p1Lazy[0], this.p1[1] - this.p1Lazy[1]]
-        this.p0Lazy = [this.p0Lazy[0] + TR_RATIO*p0Delta[0], this.p0Lazy[1] + TR_RATIO*p0Delta[1]]
-        this.p1Lazy = [this.p1Lazy[0] + TR_RATIO*p1Delta[0], this.p1Lazy[1] + TR_RATIO*p1Delta[1]]
+        // var p0Delta = [this.p0[0] - this.p0Lazy[0], this.p0[1] - this.p0Lazy[1]]
+        // var p1Delta = [this.p1[0] - this.p1Lazy[0], this.p1[1] - this.p1Lazy[1]]
+        // this.p0Lazy = [this.p0Lazy[0] + TR_RATIO*p0Delta[0], this.p0Lazy[1] + TR_RATIO*p0Delta[1]]
+        // this.p1Lazy = [this.p1Lazy[0] + TR_RATIO*p1Delta[0], this.p1Lazy[1] + TR_RATIO*p1Delta[1]]
 
-        this.interpol += (1 - this.interpol)*TR_RATIO
+        // this.interpol += (1 - this.interpol)*TR_RATIO
 
-        if (Math.abs(p0Delta[0]) < TR_THR && Math.abs(p0Delta[1]) < TR_THR){
+        //TEMP
+        this.interpolX += 1 / (60 * TR_TIME)
+        this.interpol = easeInOutCubic(this.interpolX)
+
+        var p0Delta = [this.p0[0] - this.p0Prev[0], this.p0[1] - this.p0Prev[1]]
+        var p1Delta = [this.p1[0] - this.p1Prev[0], this.p1[1] - this.p1Prev[1]]
+        this.p0Lazy = [this.p0Prev[0] + this.interpol * p0Delta[0], this.p0Prev[1] + this.interpol * p0Delta[1]]
+        this.p1Lazy = [this.p1Prev[0] + this.interpol * p1Delta[0], this.p1Prev[1] + this.interpol * p1Delta[1]]
+
+        // if (Math.abs(p0Delta[0]) < TR_THR && Math.abs(p0Delta[1]) < TR_THR){
+        //   this.p0Lazy = this.p0
+        //   this.p1Lazy = this.p1
+        //   this.moveDone = true
+        // }
+
+        // TEMP
+        if (this.interpol >= 0.995){
           this.p0Lazy = this.p0
           this.p1Lazy = this.p1
           this.moveDone = true
         }
+
       }
-  
+
       var p0 = this.toScreen(this.p0)
       var p1 = this.toScreen(this.p1)
       var p0Lazy = this.toScreen(this.p0Lazy)
@@ -613,11 +679,16 @@
       this.hover = hoverIdx
       this.hoverDist = dist
 
+      timeComputeView += Date.now() - t0
+      t0 = Date.now()  
+
       // Subgenre grid cells (fading from prev. view)
       this.drawGridCells(this.prevGridView, 1 - this.interpol)
       this.drawGridCells(this.landmarkGridView, this.interpol)
 
-  
+      timeGridCells += Date.now() - t0
+      t0 = Date.now()  
+
       // Window center and borders
       strokeWeight(1)
       stroke(255, 0, 0)
@@ -679,6 +750,22 @@
         p = this.toScreen(p)
         p[1] -= 10
         triangle(p[0], p[1]-10, p[0]-5, p[1]-20, p[0]+5, p[1]-20)
+      }
+
+      timePoints += Date.now() - t0
+      t0 = Date.now()  
+
+      timingStep += 1
+      if (timingStep == timingWindow){
+        console.log("Timing:")
+        console.log("Compute view: " + (timeComputeView / timingWindow))
+        timeComputeView = 0
+        console.log("Grid cells: " + (timeGridCells / timingWindow))
+        timeGridCells = 0
+        console.log("Draw points: " + (timePoints / timingWindow))
+        timePoints = 0
+
+        timingStep = 0
       }
 
       // Manual top-level genre tags

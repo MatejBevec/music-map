@@ -12,6 +12,7 @@ var WINH = 0.1                            // initial viewing window height (in g
 var MARGIN = 0.25    //0.25                     // buffer/loading margin around window (in % of WINW)   
 var TR_RATIO = 0.1                        // interpolaton factor per frame for the exponential transition anim.
 var TR_THR = 0.0001                       // end transition when difference is smaller than this
+var TR_TIME = 1                           // interpolation transition time in seconds (if an ease function is used)
 
 var MIN_DIST = 0.16  //0.04                      // distance (in % of WINW) under which to collapse multiple points into one
 var ADAPT_MIN_DIST = true                 // collapsing distance is relative to WINH
@@ -292,4 +293,20 @@ function getGenreColor(map, idx){
     return color
   }
   else return [0, 0, 0]
+}
+
+
+function getInterpolFactor(a, b, c){
+  console.log(a, b, c)
+  let magAB = Math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2)
+  let magAC = Math.sqrt((c[0]-a[0])**2 + (c[1]-a[1])**2)
+
+  let interpolX = magAB / magAC
+  console.log(interpolX)
+  return interpolX
+}
+
+
+function easeInOutCubic(x){
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }

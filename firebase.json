@@ -1,7 +1,7 @@
 {
   "hosting": {
     "predeploy": [
-      "export FIREBASE_HOSTING_UPLOAD_CONCURRENCY=10"
+      "export FIREBASE_HOSTING_UPLOAD_CONCURRENCY=20"
     ],
     "public": "client",
     "ignore": [
@@ -15,6 +15,6 @@
         "destination": "client/index.html"
       }
     ],
-    "timeout": 6000
+    "timeout": 150000
   }
 }
